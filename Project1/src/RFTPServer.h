@@ -14,6 +14,9 @@ class RFTPServer {
    		struct sockaddr_in server;
    		struct sockaddr_in from; 
 	public:
-		void listen();
+		RFTPServer();
+		~RFTPServer();
+		void Bind();
+		void ListenAccept();
 		
 };
