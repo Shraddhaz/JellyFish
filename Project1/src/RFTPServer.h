@@ -6,16 +6,18 @@
 #include <string.h>
 #include <netdb.h>
 #include <stdio.h>
+#include "Constants.h"
 
 class RFTPServer {
 	private:
 		int sock, length, n;
    		socklen_t fromlen;
    		struct sockaddr_in server;
-   		struct sockaddr_in from; 
+   		struct sockaddr_in from;
+		char buf[1024];
 	public:
 		RFTPServer();
-		~RFTPServer();
+		//~RFTPServer();
 		void Bind();
 		void ListenAccept();
 		
