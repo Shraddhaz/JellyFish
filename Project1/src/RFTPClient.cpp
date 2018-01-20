@@ -18,10 +18,12 @@ int RFTPClient::connectServer()
 	if (hp==0) printf("Unknown host");	
 	
 	bcopy((char *)hp->h_addr,
-        (char *)&server.sin_addr,
-         hp->h_length);
-   server.sin_port = htons(PORT_NUMBER);
-   length=sizeof(struct sockaddr_in);
+		  (char *)&server.sin_addr,
+          hp->h_length);
+   	server.sin_port = htons(PORT_NUMBER);
+   	length=sizeof(struct sockaddr_in);
+	bzero(buffer,256);
+	fgets(buffer,255,stdin);
 }
 
 int RFTPClient::sendData(char * data)

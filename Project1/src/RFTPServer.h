@@ -6,7 +6,7 @@
 #include <string.h>
 #include <netdb.h>
 #include <stdio.h>
-#include "Constants.h"
+#include "Packet.h"
 
 class RFTPServer {
 	private:
