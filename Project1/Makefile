@@ -1,6 +1,6 @@
 main: server client
 
-client: src/Client.cpp
+client: src/Client.cpp src/RFTPClient.cpp
 	g++ src/Client.cpp src/RFTPClient.cpp -o Client
 
 server: src/Server.cpp
