@@ -1,14 +1,7 @@
 #include "Constants.h"
 
-class Packet {
-	private:
+typedef struct Packet {
 		PacketKind kind;
-		bool isClient;
-		int clientID;
-		void *data;			
-		/*
-		 * I strongly believe we will need multiple
-		 * classes for this. Because for data we will
-		 * need void * which is useless in all other cases.
-		 */
-};
+		int sequence_number;
+		void *data;		
+}Packet;
