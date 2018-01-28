@@ -1,7 +1,13 @@
 #include "Constants.h"
 
-typedef struct Packet {
+class Packet {
+	private:
 		PacketKind kind;
 		int sequence_number;
-		void *data;		
-}Packet;
+		void *data;
+		
+	public:
+		void* serialize();
+		Packet(void *);
+		Packet(PacketKind,int, void *);		
+};
