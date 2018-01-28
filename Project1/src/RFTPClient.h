@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include "Packet.h"
+#include <iostream>
 class RFTPClient{
 	private:
 		int sock, n;

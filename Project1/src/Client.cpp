@@ -1,12 +1,15 @@
 /* UDP client in the internet domain */
 #include "RFTPClient.h"
+#include <iostream>
+
+using namespace std;
 
 void error(const char *);
 int main(int argc, char *argv[])
 {
 	char buffer[256];
 	RFTPClient client;
-	client.connectServer();
+	if(client.connectServer()) cout<<"Connect server done!\n";
 	printf("Please enter the message: ");
 	client.sendData(buffer);
    	return 0;

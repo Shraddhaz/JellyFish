@@ -1,5 +1,7 @@
 #include "RFTPServer.h"
 
+using namespace std;
+
 void error(const char *msg)
 {
     perror(msg);
@@ -27,12 +29,15 @@ void RFTPServer :: Bind(){
 
 void RFTPServer::ListenAccept(){
     printf("In Listen and accept");
+	char c = 'c';
+	void * p = &c;
+	Packet packet = Packet(CONNECTION_ACK, 1, p);
+	void * vptr = packet.serialize();
     while (1) {
        n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
        if (n < 0) error("recvfrom");
        write(1,"Received a datagram: ",21);
-       write(1,buf,n);
-       n = sendto(sock,"Got your message\n",17,0,(struct sockaddr *)&from,fromlen);
+       n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
        if (n  < 0) error("sendto");
 	}
 }

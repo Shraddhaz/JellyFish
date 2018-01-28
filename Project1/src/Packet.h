@@ -9,5 +9,6 @@ class Packet {
 	public:
 		void* serialize();
 		Packet(void *);
-		Packet(PacketKind,int, void *);		
+		Packet(PacketKind pk,int sn, void *data);		
+		void printPacket();
 };
