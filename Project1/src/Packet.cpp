@@ -24,7 +24,8 @@ Packet::Packet(void *buf){
 Packet::Packet(PacketKind kind,int sequence_number , void *pdata){
 	this->kind = kind;
 	this->sequence_number = sequence_number;
-	this->data = pdata;
+	this->data = malloc(DATA_SIZE);
+	memcpy(this->data, pdata, DATA_SIZE);
 }
 
 void Packet::printPacket()

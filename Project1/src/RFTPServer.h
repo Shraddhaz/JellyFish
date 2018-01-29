@@ -14,7 +14,7 @@ class RFTPServer {
    		socklen_t fromlen;
    		struct sockaddr_in server;
    		struct sockaddr_in from;
-		char buf[1024];
+		void *buf;
 	public:
 		RFTPServer();
 		//~RFTPServer();

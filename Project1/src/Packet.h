@@ -1,7 +1,7 @@
 #include "Constants.h"
 
 class Packet {
-	private:
+	public:
 		PacketKind kind;
 		int sequence_number;
 		void *data;
