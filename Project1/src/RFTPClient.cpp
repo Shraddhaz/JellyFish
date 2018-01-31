@@ -19,19 +19,17 @@ int RFTPClient::connectServer()
 	hp = gethostbyname(HOSTNAME);
 	if (hp==0) return -1;	
 	
-	bcopy((char *)hp->h_addr,
-		  (char *)&server.sin_addr,
-          hp->h_length);
+	memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
 	server.sin_port = htons(PORT_NUMBER);
    	length=sizeof(struct sockaddr_in);
-	bzero(buffer,256);
+	memset(buffer,0,256);
 	return 1;
 }
 
 int RFTPClient::sendData(char * data)
 {
 	void *buf = malloc(PACKET_SIZE);
-	bzero(buf, PACKET_SIZE);
+	memset(buf, 0,PACKET_SIZE);
 	Packet p = Packet(CONNECTION_REQUEST, 0, buf);
 	n=sendto(sock, buf, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	if (n < 0) printf("Sendto");

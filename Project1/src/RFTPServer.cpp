@@ -13,7 +13,7 @@ RFTPServer::RFTPServer(){
    	
 	if (sock < 0) error("Opening socket");
    		length = sizeof(server);
-   	bzero(&server,length);
+   	memset(&server,0,length);
 	
 	server.sin_family=AF_INET;
    	server.sin_addr.s_addr=INADDR_ANY;
@@ -32,7 +32,7 @@ void RFTPServer :: Bind(){
 void RFTPServer::ListenAccept(){
     printf("In Listen and accept\n");
 	void *ptr = malloc(DATA_SIZE);
-	bzero(ptr, DATA_SIZE);
+	memset(ptr,0,DATA_SIZE);
 	Packet packet = Packet(CONNECTION_ACK, 1, ptr);
 	void * vptr = packet.serialize();
     while (1) {
