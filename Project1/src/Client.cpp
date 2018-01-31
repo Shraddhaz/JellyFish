@@ -9,10 +9,8 @@ int main(int argc, char *argv[])
 {
 	char buffer[256];
 	RFTPClient client;
-	if(client.connectServer()) 
-		cout<<"Connect server done!\n";
-	cout<<"Please enter the message: "<<endl;
-	client.sendData(buffer);
+	if(client.connectAndSend()) 
+		cout<<"Connection Request Sent\n";
    	return 0;
 }
 

@@ -9,6 +9,7 @@
 #include <string.h>
 #include "Packet.h"
 #include <iostream>
+
 class RFTPClient{
 	private:
 		int sock, n;
@@ -20,7 +21,7 @@ class RFTPClient{
 	public:
 		RFTPClient();
 		~RFTPClient();
-		int connectServer();	
-		int sendData(char* data);
+		int connectAndSend();	
+		int sendRequest();
 		void receivePacket();
 };

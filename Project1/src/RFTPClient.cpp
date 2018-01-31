@@ -15,7 +15,7 @@ RFTPClient::~RFTPClient()
 	close(sock);
 }
 
-int RFTPClient::connectServer()
+int RFTPClient::connectAndSend()
 {
 	hp = gethostbyname(HOSTNAME);
 	if (hp==0) return -1;	
@@ -24,20 +24,28 @@ int RFTPClient::connectServer()
 	server.sin_port = htons(PORT_NUMBER);
    	length=sizeof(struct sockaddr_in);
 	memset(buffer,0,256);
-	return 1;
-}
 
-int RFTPClient::sendData(char * data)
-{
 	void *buf = malloc(PACKET_SIZE);
 	memset(buf, 0,PACKET_SIZE);
-	Packet p = Packet(CONNECTION_REQUEST, 0, buf);
+	
+	Packet p = Packet(CONNECTION_REQUEST, 0, buf);	
 	n=sendto(sock, buf, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
-	if (n < 0) printf("Sendto");
+	if (n < 0)
+		printf("Sendto");
+	
 	n = recvfrom(sock, buf,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 	Packet packet = new Packet(buf);
 	packet.printPacket();
 	if (n < 0) printf("recvfrom");
+	return 0;
+}
+
+void RFTPClient::receivePacket(){
+	while(1){
+	
+		
+	}
+
 }
 
 
