@@ -42,7 +42,6 @@ int RFTPClient::connectAndSend()
 }
 
 void RFTPClient::receivePacket(){
-
  	while(1){
  	
  		
@@ -50,13 +49,4 @@ void RFTPClient::receivePacket(){
  
  }
 
-bool RFTPClient::requestFile(char *filename)
-{
-	void *vfilename = malloc(DATA_SIZE);
-	int length = strlen(filename);
-	memset(vfilename, 0, DATA_SIZE);
-	memcpy(vfilename, &length, sizeof(int));
-	memcpy((vfilename+sizeof(int)), filename, length);
-	Packet pack = Packet(FILE_REQUEST, 0, vfilename);
-	return true;
-}
+

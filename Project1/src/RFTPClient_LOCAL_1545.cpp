@@ -31,24 +31,23 @@ int RFTPClient::connectAndSend()
 	Packet p = Packet(CONNECTION_REQUEST, 0, buf);	
 	n=sendto(sock, buf, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	if (n < 0)
-		return 0;
+		printf("Sendto");
 	
 	n = recvfrom(sock, buf,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 	Packet packet = new Packet(buf);
 	packet.printPacket();
-	if (n < 0)
-		return 0;
-	return 1;
+	if (n < 0) printf("recvfrom");
+	return 0;
 }
 
 void RFTPClient::receivePacket(){
+	while(1){	
 
- 	while(1){
- 	
- 		
- 	}
- 
- }
+
+	
+	}
+
+}
 
 bool RFTPClient::requestFile(char *filename)
 {
