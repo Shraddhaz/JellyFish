@@ -6,7 +6,8 @@ RFTPClient::RFTPClient()
 {
 	server.sin_family = AF_INET;
 	sock= socket(AF_INET, SOCK_DGRAM, 0);
-	if (sock < 0) printf("socket");
+	if (sock < 0) 
+		cout<<"socket"<<endl;
 }
 
 RFTPClient::~RFTPClient()
@@ -38,3 +39,5 @@ int RFTPClient::sendData(char * data)
 	packet.printPacket();
 	if (n < 0) printf("recvfrom");
 }
+
+

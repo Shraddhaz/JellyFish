@@ -18,7 +18,7 @@ RFTPServer::RFTPServer(){
 	server.sin_family=AF_INET;
    	server.sin_addr.s_addr=INADDR_ANY;
    	server.sin_port=htons(PORT_NUMBER);
-
+	isConnected = false;
 	buf = malloc(PACKET_SIZE);
 }
 
@@ -30,21 +30,45 @@ void RFTPServer :: Bind(){
 }
 
 void RFTPServer::ListenAccept(){
-    printf("In Listen and accept\n");
+    //printf("In Listen and accept\n");
+	cout<<"Connection Request Received\n";
 	void *ptr = malloc(DATA_SIZE);
 	memset(ptr,0,DATA_SIZE);
 	Packet packet = Packet(CONNECTION_ACK, 1, ptr);
 	void * vptr = packet.serialize();
-    while (1) {
-       n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
-       if (n < 0) cout<<"Nothing read from socket"<<endl;
-		else 
-		{
-			Packet packet = Packet(buf);
-			if (packet.kind == CONNECTION_REQUEST) break; 
-		}
-	}
-	cout<<"Connection request accepted!\n";
-       n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
-	cout<<"CONNECTION_ACK sent\n";
+    //while (1) {
+      // n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
+       //if (n < 0) cout<<"Nothing read from socket"<<endl;
+		//else 
+	//	{
+			//Packet packet = Packet(buf);
+			//if (packet.kind == CONNECTION_REQUEST) break; 
+		//}
+	//}
+	//cout<<"Connection request accepted!\n";
+      	n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+	cout<<"Connection Acknowledgement Sent\n";
+	this->isConnected = true;
 }
+
+void RFTPServer::receivePacket(){
+	//n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
+       	if (n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen) < 0) 
+		cout<<"Nothing read from socket"<<endl;
+        else
+        {
+         	Packet packet = Packet(buf);
+		switch(packet.kind){
+		case CONNECTION_REQUEST:
+			ListenAccept();
+			break;
+		case FILE_REQUEST:
+	
+		default:
+			cout<<"Matter Zhalay Bhau!"<<endl; 
+		}
+
+        }
+}
+
+

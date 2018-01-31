@@ -15,10 +15,12 @@ class RFTPServer {
    		struct sockaddr_in server;
    		struct sockaddr_in from;
 		void *buf;
+		bool isConnected;
 	public:
 		RFTPServer();
 		//~RFTPServer();
 		void Bind();
 		void ListenAccept();
+		void receivePacket();
 		
 };

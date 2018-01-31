@@ -22,4 +22,5 @@ class RFTPClient{
 		~RFTPClient();
 		int connectServer();	
 		int sendData(char* data);
+		void receivePacket();
 };

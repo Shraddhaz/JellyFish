@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 
    RFTPServer server;   
    server.Bind();
-   server.ListenAccept();
+   server.receivePacket();
    return 0;
  }
 
