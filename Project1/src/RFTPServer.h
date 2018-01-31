@@ -22,5 +22,5 @@ class RFTPServer {
 		void Bind();
 		void ListenAccept();
 		void receivePacket();
-		
+		void fileReq(void *vfileName);		
 };

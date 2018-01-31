@@ -53,10 +53,21 @@ void RFTPClient::receivePacket(){
 bool RFTPClient::requestFile(char *filename)
 {
 	void *vfilename = malloc(DATA_SIZE);
-	int length = strlen(filename);
+	int len = strlen(filename);
 	memset(vfilename, 0, DATA_SIZE);
-	memcpy(vfilename, &length, sizeof(int));
-	memcpy((vfilename+sizeof(int)), filename, length);
+	memcpy(vfilename, &len, sizeof(int));
+	memcpy((vfilename+sizeof(int)), filename, len);
 	Packet pack = Packet(FILE_REQUEST, 0, vfilename);
+	void * buffer = pack.serialize();
+	void *ptr;
+	n=sendto(sock, buffer, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	if (n < 0)
+        return false;
+
+    n = recvfrom(sock, ptr,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+	if (n < 0)
+		return false;
+    Packet packet = Packet(ptr);
+    packet.printPacket();
 	return true;
 }
