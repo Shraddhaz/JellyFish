@@ -1,9 +1,9 @@
 main: server client #Builds everything
 
-client: src/Client.cpp src/RFTPClient.cpp src/Packet.cpp#Builds client
+client: src/Client.cpp src/RFTPClient.cpp src/Packet.cpp #Builds client
 	g++ -g src/Client.cpp src/RFTPClient.cpp src/Packet.cpp -o Client
 
-server: src/Server.cpp src/RFTPServer.cpp src/Packet.cpp#Builds Server
+server: src/Server.cpp src/RFTPServer.cpp src/Packet.cpp #Builds Server
 	g++ -g src/Server.cpp src/RFTPServer.cpp src/Packet.cpp -o Server
 
 clean: #Cleans up executables

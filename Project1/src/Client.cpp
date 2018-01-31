@@ -11,7 +11,9 @@ int main(int argc, char *argv[])
 	RFTPClient client;
 	if(client.connectAndSend()) 
 		cout<<"Connection Request Sent\n";
-   	return 0;
+   	cout<<"Requesting file: "<<argv[1]<<endl;
+	bool b = client.requestFile(argv[1]);
+	return 0;
 }
 
 void error(const char *msg)
