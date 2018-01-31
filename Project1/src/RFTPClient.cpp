@@ -42,10 +42,11 @@ int RFTPClient::connectAndSend()
 }
 
 void RFTPClient::receivePacket(){
-	while(1){	
-		//Some code
-  	}
-
-}
+ 	while(1){
+ 	
+ 		
+ 	}
+ 
+ }
 
 
