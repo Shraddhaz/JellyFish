@@ -9,6 +9,7 @@
 #include <string.h>
 #include "Packet.h"
 #include <iostream>
+#include <fcntl.h>
 
 class RFTPClient{
 	private:

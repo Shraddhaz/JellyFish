@@ -59,15 +59,34 @@ bool RFTPClient::requestFile(char *filename)
 	memcpy((vfilename+sizeof(int)), filename, len);
 	Packet pack = Packet(FILE_REQUEST, 0, vfilename);
 	void * buffer = pack.serialize();
-	void *ptr;
+	void *ptr, *ptr2;
+	int x;
 	n=sendto(sock, buffer, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	cout<<"Checkpoint 1\n";
 	if (n < 0)
         return false;
+	cout<<"Checkpoint 2\n";
 
+	ptr = malloc(PACKET_SIZE);
     n = recvfrom(sock, ptr,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+	cout<<"Checkpoint 3\n";
 	if (n < 0)
 		return false;
+	cout<<"Checkpoint 4\n";
     Packet packet = Packet(ptr);
     packet.printPacket();
+	
+	cout<<"Creating file.\n";
+	int fdWrite = open("./testWrite.txt", O_CREAT | O_TRUNC| O_WRONLY, 0644);
+	while (1) {
+		 n = recvfrom(sock, ptr2,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+		if (n<= 0) break;
+		Packet pack = Packet(ptr2);
+		x = write(fdWrite, pack.data, 3);
+		void *ptr3 = malloc(DATA_SIZE);
+		memset(ptr3, 0, DATA_SIZE);
+		Packet pack2 = Packet(DATA_ACK, 0, ptr3);
+		sendto(sock, pack2.serialize(), PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	}
 	return true;
 }

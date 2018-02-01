@@ -7,6 +7,11 @@ using namespace std;
 void error(const char *);
 int main(int argc, char *argv[])
 {
+	if (argc != 2)
+	{
+		cout<<"Usage: ./Client <filename>"<<endl;
+		return 0;
+	}
 	char buffer[256];
 	RFTPClient client;
 	if(client.connectAndSend()) 

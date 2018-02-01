@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include "Packet.h"
 #include <iostream>
+#include <fcntl.h>
 class RFTPServer {
 	private:
 		int sock, length, n;
