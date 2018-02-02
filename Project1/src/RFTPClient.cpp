@@ -23,13 +23,13 @@ int RFTPClient::connectAndSend()
 	memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
 	server.sin_port = htons(PORT_NUMBER);
    	length=sizeof(struct sockaddr_in);
-	memset(buffer,0,256);
+	//memset(buffer,0,256);
 
-	void *buf = malloc(PACKET_SIZE);
-	memset(buf, 0,PACKET_SIZE);
+	void *buf = malloc(DATA_SIZE);
+	memset(buf, 0, DATA_SIZE);
 	
 	Packet p = Packet(CONNECTION_REQUEST, 0, 0, buf);	
-	n=sendto(sock, buf, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	int n=sendto(sock, p.serialize(), PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	if (n < 0)
 		return 0;
 	
@@ -60,7 +60,7 @@ bool RFTPClient::requestFile(char *filename)
 	void * buffer = pack.serialize();
 	void *ptr, *ptr2;
 	int x;
-	n=sendto(sock, buffer, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	int n=sendto(sock, buffer, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	//cout<<"Checkpoint 1\n";
 	if (n < 0)
         return false;

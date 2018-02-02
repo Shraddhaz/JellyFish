@@ -19,7 +19,7 @@ Packet::Packet(void *buf){
 	memcpy(&(this->sequence_number), (buf + SEQNO_LOC), sizeof(int));
 	memcpy(&(this->sizeOfData), (buf + DATA_SIZE_LOC), sizeof(int));
 	this->data = malloc(DATA_SIZE);
-	memcpy(this->data, (buf + DATA_LOC), PACKET_SIZE);
+	memcpy(this->data, (buf + DATA_LOC), DATA_SIZE);
 }
 
 Packet::Packet(PacketKind kind,int sequence_number , int sizeOfData, void *pdata){
@@ -39,5 +39,5 @@ void Packet::printPacket()
 
 Packet::~Packet()
 {
-	free(this->data);
+//	free(this->data);
 }
