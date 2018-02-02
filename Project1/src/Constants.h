@@ -15,6 +15,7 @@ typedef enum {
 
 
 #define SEQNO_LOC sizeof(PacketKind)
-#define DATA_LOC (SEQNO_LOC + sizeof(int)) 
+#define DATA_SIZE_LOC (SEQNO_LOC + sizeof(int))
+#define DATA_LOC (DATA_SIZE_LOC + sizeof(int)) 
 
-#define PACKET_SIZE (sizeof(PacketKind) + sizeof(int) + DATA_SIZE)
+#define PACKET_SIZE (sizeof(PacketKind) + sizeof(int) + sizeof(int) + DATA_SIZE)

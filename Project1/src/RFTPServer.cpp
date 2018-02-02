@@ -19,7 +19,7 @@ RFTPServer::RFTPServer(){
    	server.sin_addr.s_addr=INADDR_ANY;
    	server.sin_port=htons(PORT_NUMBER);
 	isConnected = false;
-	buf = malloc(PACKET_SIZE);
+	//buf = malloc(PACKET_SIZE);
 }
 
 void RFTPServer :: Bind(){
@@ -31,48 +31,49 @@ void RFTPServer :: Bind(){
 
 void RFTPServer::ListenAccept(){
 	cout<<"Connection Request Received\n";
-	void *ptr = malloc(DATA_SIZE);
+	void *ptr  = malloc(DATA_SIZE);
+	cout<<"Pointer ptr created.";
 	memset(ptr,0,DATA_SIZE);
-	Packet packet = Packet(CONNECTION_ACK, 1, ptr);
+	Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
 	void * vptr = packet.serialize();
-    n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+    int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
 	cout<<"Connection Acknowledgement Sent\n";
 	this->isConnected = true;
 }
 
-void RFTPServer::fileReq(void *vfilename)
+void RFTPServer::fileReq(void *vfilename, int size_of_data)
 {
 	int len =0;
-
-	memcpy(&len, vfilename, sizeof(int));
-	char *filename = (char *) malloc(len);
-	
-	memcpy(filename, (vfilename + sizeof(int)), len);		
+	cout<<"In file req.\nSize of data is: "<<size_of_data;
+	char *filename = (char *) malloc(size_of_data);  //Free this!
+	memcpy(filename, vfilename, size_of_data);		
 	cout<<"Filename requested: "<<filename<<endl;
 
-	void *ptr123 = malloc (DATA_SIZE);
+	void *ptr123 = malloc (DATA_SIZE);  //Free this!
 	memset(ptr123, 0, DATA_SIZE);
-	Packet pack1 = Packet(FILE_REQUEST_ACK, 0, ptr123);
+	Packet pack1 = Packet(FILE_REQUEST_ACK, 0, 0, ptr123);
 	void *tempptr = pack1.serialize();
 	sendto(sock, tempptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
 	
 	cout<<"File req ack sent\n";
-	void *buffer=malloc(3);
-	int n = 0;
+	void *buffer=malloc(DATA_SIZE);
+	int bytesRead = 0;
 	int fdRead = open("./ServerFileSystem/test.txt", 'r');
 	while(1) {
-		if((n = read(fdRead, buffer, 3)) <= 0) break;
-		Packet pack = Packet(DATA, 0, buffer);
+		if((bytesRead = read(fdRead, buffer, 3)) <= 0) break;
+		Packet pack = Packet(DATA, 0, bytesRead, buffer);
 		void *ptr = pack.serialize();
-		n = sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
-		n = recvfrom(sock,buf,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
+		int n = sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+		memset(ptr, 0, PACKET_SIZE);
+		n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
 	}
 }
 
 void RFTPServer::receivePacket(){
-	//n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen);
+	void *buf = malloc(PACKET_SIZE);  //To read a packet from socket.
+	int n; //Number of bytes read.
     while(1) {
-		if (n = recvfrom(sock,buf,1024,0,(struct sockaddr *)&from,&fromlen) < 0) 
+		if (n = recvfrom(sock,buf, PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen) < 0) 
 		cout<<"Nothing read from socket"<<endl;
         else
         {
@@ -82,7 +83,7 @@ void RFTPServer::receivePacket(){
 				ListenAccept();
 				break;
 			case FILE_REQUEST:
-				fileReq(packet.data);
+				fileReq(packet.data, packet.sizeOfData);
 				break;	
 			default:
 				cout<<"Matter Zhalay Bhau!"<<endl; 

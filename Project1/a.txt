@@ -1,0 +1,215 @@
+diff --git a/Project1/src/Constants.h b/Project1/src/Constants.h
+index 2846c03..762cd8a 100644
+--- a/Project1/src/Constants.h
++++ b/Project1/src/Constants.h
+@@ -15,7 +15,7 @@ typedef enum {
+ 
+ 
+ #define SEQNO_LOC sizeof(PacketKind)
+-#define DATA_SIZE_LOC sizeof(SEQNO_LOC + sizeof(int))
++#define DATA_SIZE_LOC (SEQNO_LOC + sizeof(int))
+ #define DATA_LOC (DATA_SIZE_LOC + sizeof(int)) 
+ 
+ #define PACKET_SIZE (sizeof(PacketKind) + sizeof(int) + sizeof(int) + DATA_SIZE)
+diff --git a/Project1/src/Packet.cpp b/Project1/src/Packet.cpp
+index 64a081e..5a5314e 100644
+--- a/Project1/src/Packet.cpp
++++ b/Project1/src/Packet.cpp
+@@ -37,7 +37,7 @@ void Packet::printPacket()
+ 	cout<<"Sequence number"<<this->sequence_number<<endl;
+ }
+ 
+-~Packet()
++Packet::~Packet()
+ {
+ 	free(this->data);
+ }
+diff --git a/Project1/src/Packet.h b/Project1/src/Packet.h
+index c3cf305..fe0e7da 100644
+--- a/Project1/src/Packet.h
++++ b/Project1/src/Packet.h
+@@ -10,7 +10,7 @@ class Packet {
+ 	public:
+ 		void* serialize();
+ 		Packet(void *);
+-		Packet(PacketKind pk,int sn, void *data);
++		Packet(PacketKind pk,int sn, int size, void *data);
+ 		~Packet();	
+ 		void printPacket();
+ };
+diff --git a/Project1/src/RFTPClient.cpp b/Project1/src/RFTPClient.cpp
+index fc1fcc9..e05d666 100644
+--- a/Project1/src/RFTPClient.cpp
++++ b/Project1/src/RFTPClient.cpp
+@@ -28,7 +28,7 @@ int RFTPClient::connectAndSend()
+ 	void *buf = malloc(PACKET_SIZE);
+ 	memset(buf, 0,PACKET_SIZE);
+ 	
+-	Packet p = Packet(CONNECTION_REQUEST, 0, buf);	
++	Packet p = Packet(CONNECTION_REQUEST, 0, 0, buf);	
+ 	n=sendto(sock, buf, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+ 	if (n < 0)
+ 		return 0;
+@@ -55,24 +55,23 @@ bool RFTPClient::requestFile(char *filename)
+ 	void *vfilename = malloc(DATA_SIZE);
+ 	int len = strlen(filename);
+ 	memset(vfilename, 0, DATA_SIZE);
+-	memcpy(vfilename, &len, sizeof(int));
+-	memcpy((vfilename+sizeof(int)), filename, len);
+-	Packet pack = Packet(FILE_REQUEST, 0, vfilename);
++	memcpy(vfilename, filename, len);
++	Packet pack = Packet(FILE_REQUEST, 0, len, vfilename);
+ 	void * buffer = pack.serialize();
+ 	void *ptr, *ptr2;
+ 	int x;
+ 	n=sendto(sock, buffer, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+-	cout<<"Checkpoint 1\n";
++	//cout<<"Checkpoint 1\n";
+ 	if (n < 0)
+         return false;
+-	cout<<"Checkpoint 2\n";
++	//cout<<"Checkpoint 2\n";
+ 
+ 	ptr = malloc(PACKET_SIZE);
+     n = recvfrom(sock, ptr,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+-	cout<<"Checkpoint 3\n";
++	//cout<<"Checkpoint 3\n";
+ 	if (n < 0)
+ 		return false;
+-	cout<<"Checkpoint 4\n";
++	//cout<<"Checkpoint 4\n";
+     Packet packet = Packet(ptr);
+     packet.printPacket();
+ 	
+@@ -82,10 +81,10 @@ bool RFTPClient::requestFile(char *filename)
+ 		 n = recvfrom(sock, ptr2,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+ 		if (n<= 0) break;
+ 		Packet pack = Packet(ptr2);
+-		x = write(fdWrite, pack.data, 3);
++		x = write(fdWrite, pack.data, pack.sizeOfData);
+ 		void *ptr3 = malloc(DATA_SIZE);
+ 		memset(ptr3, 0, DATA_SIZE);
+-		Packet pack2 = Packet(DATA_ACK, 0, ptr3);
++		Packet pack2 = Packet(DATA_ACK, 0, 0, ptr3);
+ 		sendto(sock, pack2.serialize(), PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+ 	}
+ 	return true;
+diff --git a/Project1/src/RFTPServer.cpp b/Project1/src/RFTPServer.cpp
+index be6c19b..42668c9 100644
+--- a/Project1/src/RFTPServer.cpp
++++ b/Project1/src/RFTPServer.cpp
+@@ -19,7 +19,7 @@ RFTPServer::RFTPServer(){
+    	server.sin_addr.s_addr=INADDR_ANY;
+    	server.sin_port=htons(PORT_NUMBER);
+ 	isConnected = false;
+-	buf = malloc(PACKET_SIZE);
++	//buf = malloc(PACKET_SIZE);
+ }
+ 
+ void RFTPServer :: Bind(){
+@@ -31,45 +31,46 @@ void RFTPServer :: Bind(){
+ 
+ void RFTPServer::ListenAccept(){
+ 	cout<<"Connection Request Received\n";
+-	void *ptr = malloc(DATA_SIZE);
++	void *ptr  = malloc(DATA_SIZE);
+ 	memset(ptr,0,DATA_SIZE);
+-	Packet packet = Packet(CONNECTION_ACK, 1, ptr);
++	Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
+ 	void * vptr = packet.serialize();
+-    n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
++    int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+ 	cout<<"Connection Acknowledgement Sent\n";
+ 	this->isConnected = true;
+ }
+ 
+-void RFTPServer::fileReq(void *vfilename)
++void RFTPServer::fileReq(void *vfilename, int size_of_data)
+ {
+ 	int len =0;
+-
+-	memcpy(&len, vfilename, sizeof(int));
+-	char *filename = (char *) malloc(len);
+-	
+-	memcpy(filename, (vfilename + sizeof(int)), len);		
++	cout<<"In file req.\nSize of data is: "<<size_of_data;
++	char *filename = (char *) malloc(size_of_data);  //Free this!
++	memcpy(filename, vfilename, size_of_data);		
+ 	cout<<"Filename requested: "<<filename<<endl;
+ 
+-	void *ptr123 = malloc (DATA_SIZE);
++	void *ptr123 = malloc (DATA_SIZE);  //Free this!
+ 	memset(ptr123, 0, DATA_SIZE);
+-	Packet pack1 = Packet(FILE_REQUEST_ACK, 0, ptr123);
++	Packet pack1 = Packet(FILE_REQUEST_ACK, 0, 0, ptr123);
+ 	void *tempptr = pack1.serialize();
+ 	sendto(sock, tempptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+ 	
+ 	cout<<"File req ack sent\n";
+-	void *buffer=malloc(3);
+-	int n = 0;
++	void *buffer=malloc(DATA_SIZE);
++	int bytesRead = 0;
+ 	int fdRead = open("./ServerFileSystem/test.txt", 'r');
+ 	while(1) {
+-		if((n = read(fdRead, buffer, 3)) <= 0) break;
+-		Packet pack = Packet(DATA, 0, buffer);
++		if((bytesRead = read(fdRead, buffer, 3)) <= 0) break;
++		Packet pack = Packet(DATA, 0, bytesRead, buffer);
+ 		void *ptr = pack.serialize();
+-		n = sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+-		n = recvfrom(sock,buf,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
++		int n = sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
++		memset(ptr, 0, PACKET_SIZE);
++		n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
+ 	}
+ }
+ 
+ void RFTPServer::receivePacket(){
++	void *buf = malloc(PACKET_SIZE);  //To read a packet from socket.
++	int n; //Number of bytes read.
+     while(1) {
+ 		if (n = recvfrom(sock,buf, PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen) < 0) 
+ 		cout<<"Nothing read from socket"<<endl;
+@@ -81,7 +82,7 @@ void RFTPServer::receivePacket(){
+ 				ListenAccept();
+ 				break;
+ 			case FILE_REQUEST:
+-				fileReq(packet.data);
++				fileReq(packet.data, packet.sizeOfData);
+ 				break;	
+ 			default:
+ 				cout<<"Matter Zhalay Bhau!"<<endl; 
+diff --git a/Project1/src/RFTPServer.h b/Project1/src/RFTPServer.h
+index 3f022fe..db47bbf 100644
+--- a/Project1/src/RFTPServer.h
++++ b/Project1/src/RFTPServer.h
+@@ -11,11 +11,10 @@
+ #include <fcntl.h>
+ class RFTPServer {
+ 	private:
+-		int sock, length, n;
++		int sock, length;
+    		socklen_t fromlen;
+    		struct sockaddr_in server;
+    		struct sockaddr_in from;
+-		void *buf;
+ 		bool isConnected;
+ 	public:
+ 		RFTPServer();
+@@ -23,5 +22,5 @@ class RFTPServer {
+ 		void Bind();
+ 		void ListenAccept();
+ 		void receivePacket();
+-		void fileReq(void *vfileName);		
++		void fileReq(void * ptr, int size);
+ };
+diff --git a/Project1/testWrite.txt b/Project1/testWrite.txt
+deleted file mode 100644
+index 31a70fc..0000000
+--- a/Project1/testWrite.txt
++++ /dev/null
+@@ -1,2 +0,0 @@
+-This is a test file. 
+-. 
+\ No newline at end of file

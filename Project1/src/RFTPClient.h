@@ -13,11 +13,11 @@
 
 class RFTPClient{
 	private:
-		int sock, n;
-		unsigned int length;
-   		struct sockaddr_in server, from;
-   		struct hostent *hp;
-   		char buffer[256];
+		int sock, n; //I don't need n.
+		unsigned int length; //I don't need length.
+   		struct sockaddr_in server, from; 
+   		struct hostent *hp; 
+   		char buffer[256]; //I don't need buffer.
 
 	public:
 		RFTPClient();

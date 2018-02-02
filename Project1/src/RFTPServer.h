@@ -11,11 +11,10 @@
 #include <fcntl.h>
 class RFTPServer {
 	private:
-		int sock, length, n;
+		int sock, length;
    		socklen_t fromlen;
    		struct sockaddr_in server;
    		struct sockaddr_in from;
-		void *buf;
 		bool isConnected;
 	public:
 		RFTPServer();
@@ -23,5 +22,5 @@ class RFTPServer {
 		void Bind();
 		void ListenAccept();
 		void receivePacket();
-		void fileReq(void *vfileName);		
+		void fileReq(void * ptr, int size);
 };

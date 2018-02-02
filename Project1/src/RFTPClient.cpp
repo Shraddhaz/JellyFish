@@ -28,7 +28,7 @@ int RFTPClient::connectAndSend()
 	void *buf = malloc(PACKET_SIZE);
 	memset(buf, 0,PACKET_SIZE);
 	
-	Packet p = Packet(CONNECTION_REQUEST, 0, buf);	
+	Packet p = Packet(CONNECTION_REQUEST, 0, 0, buf);	
 	n=sendto(sock, buf, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	if (n < 0)
 		return 0;
@@ -55,24 +55,23 @@ bool RFTPClient::requestFile(char *filename)
 	void *vfilename = malloc(DATA_SIZE);
 	int len = strlen(filename);
 	memset(vfilename, 0, DATA_SIZE);
-	memcpy(vfilename, &len, sizeof(int));
-	memcpy((vfilename+sizeof(int)), filename, len);
-	Packet pack = Packet(FILE_REQUEST, 0, vfilename);
+	memcpy(vfilename, filename, len);
+	Packet pack = Packet(FILE_REQUEST, 0, len, vfilename);
 	void * buffer = pack.serialize();
 	void *ptr, *ptr2;
 	int x;
 	n=sendto(sock, buffer, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
-	cout<<"Checkpoint 1\n";
+	//cout<<"Checkpoint 1\n";
 	if (n < 0)
         return false;
-	cout<<"Checkpoint 2\n";
+	//cout<<"Checkpoint 2\n";
 
 	ptr = malloc(PACKET_SIZE);
     n = recvfrom(sock, ptr,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
-	cout<<"Checkpoint 3\n";
+	//cout<<"Checkpoint 3\n";
 	if (n < 0)
 		return false;
-	cout<<"Checkpoint 4\n";
+	//cout<<"Checkpoint 4\n";
     Packet packet = Packet(ptr);
     packet.printPacket();
 	
@@ -82,10 +81,10 @@ bool RFTPClient::requestFile(char *filename)
 		 n = recvfrom(sock, ptr2,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 		if (n<= 0) break;
 		Packet pack = Packet(ptr2);
-		x = write(fdWrite, pack.data, 3);
+		x = write(fdWrite, pack.data, pack.sizeOfData);
 		void *ptr3 = malloc(DATA_SIZE);
 		memset(ptr3, 0, DATA_SIZE);
-		Packet pack2 = Packet(DATA_ACK, 0, ptr3);
+		Packet pack2 = Packet(DATA_ACK, 0, 0, ptr3);
 		sendto(sock, pack2.serialize(), PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	}
 	return true;
