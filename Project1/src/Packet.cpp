@@ -39,5 +39,5 @@ void Packet::printPacket()
 
 Packet::~Packet()
 {
-//	free(this->data);
+	free(this->data);
 }
