@@ -64,8 +64,14 @@ bool RFTPClient::requestFile(char *filename)
 	int len = strlen(filename);
 	memset(vfilename, 0, DATA_SIZE);
 	memcpy(vfilename, filename, len);
-	Packet pack = Packet(FILE_REQUEST, 0, len, vfilename);
+	Packet pack = Packet(FILE_REQUEST, 2, len, vfilename);
 	void * serialized_packet = pack.serialize();	//Freed
+
+	//Create absolute path of the filename
+	char abs_filename[(6+1+len)];
+	strcpy(abs_filename, client_fs);
+	strcat(abs_filename, "/");
+	strcat(abs_filename, filename);
 
 	void *received_packet;
 	int x;
@@ -83,16 +89,26 @@ bool RFTPClient::requestFile(char *filename)
 		return false;
 	//cout<<"Checkpoint 4\n";
     Packet packet = Packet(received_packet);
-    packet.printPacket();
-	
+    packet.printPacket();	
 	memset(received_packet, 0, PACKET_SIZE);
 	
+	void * asd = malloc(DATA_SIZE);
+	memset(asd, 0, DATA_SIZE);
+	Packet asdf = Packet(START_DATA_TRANSFER, 20, 0, asd);
+	void *asdfg = asdf.serialize();
+	sendto(sock, asdfg, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	delete(asdfg);
+
 	cout<<"Creating file.\n";
-	int fdWrite = open("./testWrite.txt", O_CREAT | O_TRUNC| O_WRONLY, 0644);
+	int fdWrite = open(abs_filename, O_CREAT | O_TRUNC| O_WRONLY, 0644);
 	while (1) {
-		 n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+		n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 		if (n<= 0) break;
 		Packet pack = Packet(received_packet);
+		cout<<"Received packet in infinite loop.\n";	
+		pack.printPacket();
+		if(pack.kind == CLOSE_CONNECTION)
+			break;
 		x = write(fdWrite, pack.data, pack.sizeOfData);
 		void *ptr3 = malloc(DATA_SIZE);
 		memset(ptr3, 0, DATA_SIZE);
@@ -102,6 +118,14 @@ bool RFTPClient::requestFile(char *filename)
 		delete(ptr3);
 		delete(serialized_packet2);
 	}
+	
+	/*
+	void *ptr = malloc(PACKET_SIZE); 
+	n = recvfrom(sock, ptr,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+	Packet p = Packet(ptr);
+	if(p.kind == CLOSE_CONNECTION)
+		exit(0);	
+	*/
 	delete(received_packet);
 	delete(vfilename);
 	return true;

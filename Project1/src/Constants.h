@@ -8,6 +8,7 @@ typedef enum {
 	CONNECTION_ACK,
 	FILE_REQUEST,
 	FILE_REQUEST_ACK,
+	START_DATA_TRANSFER,
 	DATA,
 	DATA_ACK,
 	CLOSE_CONNECTION,
@@ -19,3 +20,6 @@ typedef enum {
 #define DATA_LOC (DATA_SIZE_LOC + sizeof(int)) 
 
 #define PACKET_SIZE (sizeof(PacketKind) + sizeof(int) + sizeof(int) + DATA_SIZE)
+
+#define client_fs "ClientFileSystem"
+#define server_fs "ServerFileSystem"

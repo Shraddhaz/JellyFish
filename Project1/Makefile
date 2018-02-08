@@ -7,4 +7,4 @@ server: src/Server.cpp src/RFTPServer.cpp src/Packet.cpp
 	g++ -g -w src/Server.cpp src/RFTPServer.cpp src/Packet.cpp -o Server
 
 clean: #Cleans up executables
-	rm Client Server
+	rm Client Server ClientFileSystem/test.txt
