@@ -1,0 +1,116 @@
+diff --git a/Project1/src/RFTPClient.cpp b/Project1/src/RFTPClient.cpp
+index 1439e58..c85cf0d 100644
+--- a/Project1/src/RFTPClient.cpp
++++ b/Project1/src/RFTPClient.cpp
+@@ -61,14 +61,14 @@ bool RFTPClient::requestFile(char *filename)
+ {
+ 	//Copying filename on the data field of packet.
+ 	void *vfilename = malloc(DATA_SIZE);
+-	int len = strlen(filename);
++	int lenstr = strlen(filename);
+ 	memset(vfilename, 0, DATA_SIZE);
+-	memcpy(vfilename, filename, len);
+-	Packet pack = Packet(FILE_REQUEST, 2, len, vfilename);
++	memcpy(vfilename, filename, lenstr);
++	Packet pack = Packet(FILE_REQUEST, 2, lenstr, vfilename);
+ 	void * serialized_packet = pack.serialize();	//Freed
+ 
+ 	//Create absolute path of the filename
+-	char abs_filename[(6+1+len)];
++	char abs_filename[(6+1+lenstr)];
+ 	strcpy(abs_filename, client_fs);
+ 	strcat(abs_filename, "/");
+ 	strcat(abs_filename, filename);
+@@ -130,3 +130,14 @@ bool RFTPClient::requestFile(char *filename)
+ 	delete(vfilename);
+ 	return true;
+ }
++
++
++bool RFTPClient::send_packet(PacketKind pk, int seq_no) {
++	void *ptr = malloc(DATA_SIZE);
++	memset(ptr, 0, DATA_SIZE);
++	Packet packet = Packet(pk, seq_no, 0, ptr);
++	void *serialized_packet = malloc(PACKET_SIZE);
++	sendto(sock, serialized_packet, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
++	delete(serialized_packet);
++	delete(ptr);
++}
+diff --git a/Project1/src/RFTPClient.h b/Project1/src/RFTPClient.h
+index de7f782..372ec82 100644
+--- a/Project1/src/RFTPClient.h
++++ b/Project1/src/RFTPClient.h
+@@ -26,4 +26,5 @@ class RFTPClient{
+ 		int sendRequest();
+ 		void receivePacket();
+ 		bool requestFile(char *filename);
++		bool send_packet(PacketKind pk, int seq_no);
+ };
+diff --git a/Project1/src/RFTPServer.cpp b/Project1/src/RFTPServer.cpp
+index 920884c..6338972 100644
+--- a/Project1/src/RFTPServer.cpp
++++ b/Project1/src/RFTPServer.cpp
+@@ -30,26 +30,32 @@ void RFTPServer :: Bind(){
+ 
+ void RFTPServer::ListenAccept(){
+ 	cout<<"Connection Request Received\n";
+-	void *ptr  = malloc(DATA_SIZE);
++	//void *ptr  = malloc(DATA_SIZE);
+ 	cout<<"Pointer ptr created.";
+-	memset(ptr,0,DATA_SIZE);
+-	Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
+-	void * vptr = packet.serialize();
+-    int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+-	delete(vptr);
++	//memset(ptr,0,DATA_SIZE);
++	//Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
++	//void * vptr = packet.serialize();
++    //int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
++	//delete(vptr);
++	send_packet(CONNECTION_ACK, 1);
+ 	cout<<"Connection Acknowledgement Sent\n";
+ 	this->isConnected = true;
+ }
+ 
+ void RFTPServer::fileReq(void *vfilename, int size_of_data)
+ {
+-	cout<<"In file req.\nSize of data is: "<<size_of_data;
++	cout<<"In file req.\nSize of data is: "<<size_of_data<<endl;;
++	cout<<"Void ptr: \n";
++
++	for(int i = 0; i < size_of_data; i++)
++		cout<<vfilename[i];
+ 	
+ 	if (!this->isConnected)
+ 		return;
+ 	
+ 	//Read filename
+ 	char *filename = (char *) malloc(size_of_data);  //Freed
++	memset(filename, 0, size_of_data);
+ 	memcpy(filename, vfilename, size_of_data);		
+ 	cout<<"Filename requested: "<<filename<<endl;
+ 	char absfilename[(6+1+size_of_data)];
+@@ -139,3 +145,13 @@ void RFTPServer::receivePacket(){
+         }
+ 	}
+ }
++
++bool RFTPServer::send_packet(PacketKind pk, int seq_no) { 
++	void * ptr = malloc(DATA_SIZE);
++	memset(ptr, 0, DATA_SIZE);
++	Packet packet = Packet(pk, seq_no, 0, ptr);
++	void *serialized_packet = packet.serialize();
++	sendto(sock, serialized_packet, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
++	//delete(ptr);
++	//delete(serialized_packet);
++}
+diff --git a/Project1/src/RFTPServer.h b/Project1/src/RFTPServer.h
+index db47bbf..8cb8745 100644
+--- a/Project1/src/RFTPServer.h
++++ b/Project1/src/RFTPServer.h
+@@ -23,4 +23,5 @@ class RFTPServer {
+ 		void ListenAccept();
+ 		void receivePacket();
+ 		void fileReq(void * ptr, int size);
++		bool send_packet(PacketKind pk, int seq_no);
+ };

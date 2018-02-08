@@ -61,7 +61,7 @@ bool RFTPClient::requestFile(char *filename)
 {
 	//Copying filename on the data field of packet.
 	void *vfilename = malloc(DATA_SIZE);
-	int len = strlen(filename);
+	int len = strlen(filename)+1;
 	memset(vfilename, 0, DATA_SIZE);
 	memcpy(vfilename, filename, len);
 	Packet pack = Packet(FILE_REQUEST, 2, len, vfilename);

@@ -49,14 +49,17 @@ void RFTPServer::fileReq(void *vfilename, int size_of_data)
 		return;
 	
 	//Read filename
-	char *filename = (char *) malloc(size_of_data);  //Freed
+	//char *filename = (char *) malloc(size_of_data);  //Freed
+
+	char absfilename[6+1+size_of_data];
+	char filename[size_of_data];
 	memcpy(filename, vfilename, size_of_data);		
 	cout<<"Filename requested: "<<filename<<endl;
-	char absfilename[(6+1+size_of_data)];
 	strcpy(absfilename, server_fs);
 	strcat(absfilename, "/");
 	strcat(absfilename, filename);
-
+	cout<<absfilename<<endl;
+	
 	//Create a data packet
 	void *data = malloc (DATA_SIZE);  //Freed
 	memset(data, 0, DATA_SIZE);
@@ -109,7 +112,7 @@ void RFTPServer::fileReq(void *vfilename, int size_of_data)
 
 	delete(dataClose);
 	delete(serialized_packet_cc);
-	delete(filename);
+	//delete(filename);
 	delete(data);
 	delete(serialized_packet);
 }
