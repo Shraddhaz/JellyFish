@@ -23,7 +23,8 @@ int RFTPClient::connectAndSend()
 	memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
 	server.sin_port = htons(PORT_NUMBER);
    	length=sizeof(struct sockaddr_in);
-
+	
+	#if 0
 	void *buf = malloc(DATA_SIZE);
 	memset(buf, 0, DATA_SIZE);
 	
@@ -34,18 +35,20 @@ int RFTPClient::connectAndSend()
 	void * serialized_packet = p.serialize();
 	int n=sendto(sock, serialized_packet, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	delete(serialized_packet);
-	if (n < 0)
-		return 0;
-
-	n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
-	Packet packet = new Packet(buf);
+	#endif
+	send_packet(CONNECTION_REQUEST, 0);
+	void *received_packet = malloc(PACKET_SIZE);
+	memset(received_packet, 0, PACKET_SIZE);
+	int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+	Packet packet = new Packet(received_packet);
 	packet.printPacket();
+
+	delete(received_packet);
+	
 	if (n < 0)
 		return 0;
 	return 1;
 
-	delete(received_packet);
-	delete(buf);
 }
 
 void RFTPClient::receivePacket(){
@@ -129,4 +132,14 @@ bool RFTPClient::requestFile(char *filename)
 	delete(received_packet);
 	delete(vfilename);
 	return true;
+}
+
+bool RFTPClient::send_packet(PacketKind pk, int seq_no) {
+	void *data = malloc(DATA_SIZE);
+	memset(data, 0, DATA_SIZE);
+    Packet packet = Packet(pk, seq_no, 0, data);
+    void *ptr = packet.serialize();
+    sendto(sock, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	delete(data);
+    delete(ptr);
 }

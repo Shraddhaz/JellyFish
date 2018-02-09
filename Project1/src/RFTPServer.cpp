@@ -30,13 +30,14 @@ void RFTPServer :: Bind(){
 
 void RFTPServer::ListenAccept(){
 	cout<<"Connection Request Received\n";
-	void *ptr  = malloc(DATA_SIZE);
+	//void *ptr  = malloc(DATA_SIZE);
 	cout<<"Pointer ptr created.";
-	memset(ptr,0,DATA_SIZE);
-	Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
-	void * vptr = packet.serialize();
-    int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
-	delete(vptr);
+	//memset(ptr,0,DATA_SIZE);
+	//Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
+	//void * vptr = packet.serialize();
+    //int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+	//delete(vptr);
+	send_packet(CONNECTION_ACK, 1);
 	cout<<"Connection Acknowledgement Sent\n";
 	this->isConnected = true;
 }
@@ -141,4 +142,14 @@ void RFTPServer::receivePacket(){
 
         }
 	}
+}
+
+bool RFTPServer::send_packet(PacketKind pk, int seq_no) {
+	void *data = malloc(DATA_SIZE);
+	memset(data, 0, DATA_SIZE);
+	Packet packet = Packet(pk, seq_no, 0, data);
+	void *ptr = packet.serialize();
+	sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+	delete(data);	
+	delete(ptr);	
 }

@@ -26,4 +26,5 @@ class RFTPClient{
 		int sendRequest();
 		void receivePacket();
 		bool requestFile(char *filename);
+		bool send_packet(PacketKind pk, int seq_no);
 };
