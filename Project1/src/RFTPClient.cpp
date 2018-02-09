@@ -67,8 +67,8 @@ bool RFTPClient::requestFile(char *filename)
 	int len = strlen(filename)+1;
 	memset(vfilename, 0, DATA_SIZE);
 	memcpy(vfilename, filename, len);
-	Packet pack = Packet(FILE_REQUEST, 2, len, vfilename);
-	void * serialized_packet = pack.serialize();	//Freed
+	//Packet pack = Packet(FILE_REQUEST, 2, len, vfilename);
+	//void * serialized_packet = pack.serialize();	//Freed
 
 	//Create absolute path of the filename
 	char abs_filename[(6+1+len)];
@@ -78,34 +78,26 @@ bool RFTPClient::requestFile(char *filename)
 
 	void *received_packet;
 	int x;
-	int n=sendto(sock, serialized_packet, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
-	delete(serialized_packet);
+	//int n=sendto(sock, serialized_packet, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
+	send_packet(FILE_REQUEST, 2, len, vfilename);
+	//delete(serialized_packet);
 	//cout<<"Checkpoint 1\n";
-	if (n < 0)
-        return false;
 	//cout<<"Checkpoint 2\n";
 
 	received_packet = malloc(PACKET_SIZE);
-    n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+    recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 	//cout<<"Checkpoint 3\n";
-	if (n < 0)
-		return false;
 	//cout<<"Checkpoint 4\n";
     Packet packet = Packet(received_packet);
     packet.printPacket();	
 	memset(received_packet, 0, PACKET_SIZE);
 	
-	void * asd = malloc(DATA_SIZE);
-	memset(asd, 0, DATA_SIZE);
-	Packet asdf = Packet(START_DATA_TRANSFER, 20, 0, asd);
-	void *asdfg = asdf.serialize();
-	sendto(sock, asdfg, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
-	delete(asdfg);
+	send_packet(START_DATA_TRANSFER, 20);
 
 	cout<<"Creating file.\n";
 	int fdWrite = open(abs_filename, O_CREAT | O_TRUNC| O_WRONLY, 0644);
 	while (1) {
-		n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+		int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 		if (n<= 0) break;
 		Packet pack = Packet(received_packet);
 		cout<<"Received packet in infinite loop.\n";	
@@ -113,13 +105,7 @@ bool RFTPClient::requestFile(char *filename)
 		if(pack.kind == CLOSE_CONNECTION)
 			break;
 		x = write(fdWrite, pack.data, pack.sizeOfData);
-		void *ptr3 = malloc(DATA_SIZE);
-		memset(ptr3, 0, DATA_SIZE);
-		Packet pack2 = Packet(DATA_ACK, 0, 0, ptr3);
-		void *serialized_packet2 = pack2.serialize();
-		sendto(sock, serialized_packet2, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
-		delete(ptr3);
-		delete(serialized_packet2);
+		send_packet(DATA_ACK, 0);
 	}
 	
 	/*
@@ -141,5 +127,12 @@ bool RFTPClient::send_packet(PacketKind pk, int seq_no) {
     void *ptr = packet.serialize();
     sendto(sock, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
 	delete(data);
+    delete(ptr);
+}
+
+bool RFTPClient::send_packet(PacketKind pk, int seq_no, int size, void *data) {
+    Packet packet = Packet(pk, seq_no, size, data);
+    void *ptr = packet.serialize();
+    sendto(sock, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
     delete(ptr);
 }
