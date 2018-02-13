@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
    	cout<<"Requesting file: "<<argv[2]<<endl;
 	bool b = client.requestFile(argv[2]);
 	if (b)
-		cout<<"File transfer oomplete.\n";
+		cout<<"File transfer complete.\n";
 	else
 		cout<<"Error transferring the file.\n"
 				"Check filename entered and/or check you connectivity.\n";

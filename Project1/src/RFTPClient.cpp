@@ -7,7 +7,7 @@ RFTPClient::RFTPClient()
 	server.sin_family = AF_INET;
 	sock= socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) 
-		cout<<"socket"<<endl;
+		cout<<"Error creating socket."<<endl;
 }
 
 RFTPClient::~RFTPClient()

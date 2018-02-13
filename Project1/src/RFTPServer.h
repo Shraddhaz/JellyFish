@@ -17,6 +17,7 @@ class RFTPServer {
    		struct sockaddr_in from;
 		bool isConnected;
 		struct timeval read_timeout;
+		struct timeval reset_timeout;
 	public:
 		RFTPServer();
 		//~RFTPServer();

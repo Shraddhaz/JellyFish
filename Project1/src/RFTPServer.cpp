@@ -17,6 +17,9 @@ RFTPServer::RFTPServer(){
 	read_timeout.tv_sec = 0;
 	read_timeout.tv_usec = 100000;
 
+	reset_timeout.tv_sec = 0;
+	reset_timeout.tv_usec = 0;
+
 	isConnected = false;
 }
 
@@ -76,7 +79,7 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 	int datasn = 4;
 
 	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
-
+	int total_transmissions = 0;
 	while(1) {
 		if((bytesRead = read(fdRead, data, DATA_SIZE)) <= 0) break;
 		void *ptr = malloc(PACKET_SIZE);	
@@ -84,6 +87,7 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 		bool cond = true;
 		do {
 			send_packet(DATA, datasn, bytesRead, data);
+			total_transmissions++;
 			memset(ptr, 0, PACKET_SIZE);
 	
 			int n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
@@ -98,10 +102,12 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 		delete(ptr);
 	}
 
+	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
 
 	send_packet(CLOSE_CONNECTION, 0);
 	delete(data);
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &reset_timeout, sizeof reset_timeout);
 	return true;
 }
 
@@ -127,7 +133,7 @@ void RFTPServer::receivePacket(){
 				break;	
 			default:
 				cout<<"Could not recognize the packet kind and thus ignoring the packet."<<endl; 
-		}
+			}
 
         }
 	}
