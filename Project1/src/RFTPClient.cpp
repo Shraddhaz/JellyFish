@@ -74,12 +74,12 @@ bool RFTPClient::requestFile(char *filename)
 
 	cout<<"Creating file.\n";
 	bool flag = true;
-	int previousPacketNo = 0;
+	int previousPacketNo = 3;
 	int fdWrite = open(abs_filename, O_CREAT | O_TRUNC| O_WRONLY, 0644);
 	while (1) {
 		int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 		if (n<= 0) {
-//			return_val = false;
+			return_val = false;
 			break;
 		}
 		Packet pack = Packet(received_packet);
@@ -93,7 +93,7 @@ bool RFTPClient::requestFile(char *filename)
 			return_val = false; 
 			break;
 		}
-		if(previousPacketNo != pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
+		if((previousPacketNo+1) == pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
 		if (flag) send_packet(DATA_ACK, 0);
 		previousPacketNo = 	pack.sequence_number;
 	}
