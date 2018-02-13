@@ -3,10 +3,12 @@
    server runs forever */
 #include "RFTPServer.h"
 
+using namespace std;
+
 int main(int argc, char *argv[])
 {
    if (argc != 1) {
-      fprintf(stderr, "ERROR, no need of any command line arguments.\n");
+      cout<<"ERROR, no need of any command line arguments.\n";
       exit(0);
    }
 

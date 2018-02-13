@@ -86,13 +86,11 @@ bool RFTPClient::requestFile(char *filename)
 		if(pack.sequence_number%1000 == 0) flag = !flag;
 		cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
-#if 0			
 			return_val = true;
 			break;
 		}
 		else if (pack.kind != DATA) {
 			return_val = false; 
-#endif
 			break;
 		}
 		if(previousPacketNo != pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
@@ -102,7 +100,7 @@ bool RFTPClient::requestFile(char *filename)
 	
 	delete(received_packet);
 	delete(vfilename);
-	return true;
+	return return_val;
 }
 
 void RFTPClient::send_packet(PacketKind pk, int seq_no) {

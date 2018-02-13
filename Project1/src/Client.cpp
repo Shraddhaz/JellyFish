@@ -4,7 +4,6 @@
 
 using namespace std;
 
-void error(const char *);
 int main(int argc, char *argv[])
 {
 	if (argc != 3)
@@ -27,10 +26,3 @@ int main(int argc, char *argv[])
 				"Check filename entered and/or check you connectivity.\n";
 	return 0;
 }
-/*
-void error(const char *msg)
-{
-    perror(msg);
-    exit(0);
-}
-*/

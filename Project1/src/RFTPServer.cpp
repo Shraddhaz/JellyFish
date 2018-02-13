@@ -2,17 +2,10 @@
 
 using namespace std;
 
-void error(const char *msg)
-{
-    perror(msg);
-    exit(0);
-}
-
-
 RFTPServer::RFTPServer(){
 	sock=socket(AF_INET, SOCK_DGRAM, 0);
    	
-	if (sock < 0) error("Opening socket");
+	if (sock < 0) cout<<"Opening socket"<<endl;
    		length = sizeof(server);
    	memset(&server,0,length);
 	
@@ -29,9 +22,9 @@ RFTPServer::RFTPServer(){
 
 void RFTPServer :: Bind(){
    if (bind(sock,(struct sockaddr *)&server,length)<0) 
-       error("binding");
+       cout<<"binding"<<endl;
    fromlen = sizeof(struct sockaddr_in);
-   printf("Bind complete\n");
+   cout<<"Bind complete\n";
 }
 
 void RFTPServer::ListenAccept(){
@@ -87,23 +80,20 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 	while(1) {
 		if((bytesRead = read(fdRead, data, DATA_SIZE)) <= 0) break;
 		void *ptr = malloc(PACKET_SIZE);	
-		cout<<"Data read again.\n";
 		Packet *temp;
 		bool cond = true;
 		do {
 			send_packet(DATA, datasn, bytesRead, data);
-		cout<<"Sending data packet of sequence number: "<<datasn<<endl;
 			memset(ptr, 0, PACKET_SIZE);
 	
 			int n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
 			if (n < 0) continue;
-			cout<<"Received Packet.\n";
+				cout<<"Received Packet.\n";
 
 			temp = new Packet(ptr);
 			cond = temp->kind != DATA_ACK;
 			delete(temp);
 		} while(cond);
-		cout<<"Code somehow reaching here...\n";
 		datasn++;
 		delete(ptr);
 	}
