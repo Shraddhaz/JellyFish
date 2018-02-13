@@ -17,7 +17,6 @@ class RFTPClient{
 		unsigned int length;
 		struct sockaddr_in server, from; 
    		struct hostent *hp; 
-//   		char buffer[256]; //I don't need buffer.
 
 	public:
 		RFTPClient();
@@ -26,6 +25,6 @@ class RFTPClient{
 		int sendRequest();
 		void receivePacket();
 		bool requestFile(char *filename);
-		bool send_packet(PacketKind pk, int seq_no);
-		bool send_packet(PacketKind pk, int seq_no, int size, void *data);
+		void send_packet(PacketKind pk, int seq_no);
+		void send_packet(PacketKind pk, int seq_no, int size, void *data);
 };

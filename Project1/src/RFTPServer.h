@@ -23,7 +23,7 @@ class RFTPServer {
 		void Bind();
 		void ListenAccept();
 		void receivePacket();
-		void fileReq(void * ptr, int size);
-		bool send_packet(PacketKind pk, int sn);
-		bool send_packet(PacketKind pk, int sn, int size, void *data);
+		bool fileReq(void * ptr, int size);
+		void send_packet(PacketKind pk, int sn);
+		void send_packet(PacketKind pk, int sn, int size, void *data);
 };

@@ -8,6 +8,7 @@ void error(const char *msg)
     exit(0);
 }
 
+
 RFTPServer::RFTPServer(){
 	sock=socket(AF_INET, SOCK_DGRAM, 0);
    	
@@ -35,29 +36,19 @@ void RFTPServer :: Bind(){
 
 void RFTPServer::ListenAccept(){
 	cout<<"Connection Request Received\n";
-	//void *ptr  = malloc(DATA_SIZE);
 	cout<<"Pointer ptr created.";
-	//memset(ptr,0,DATA_SIZE);
-	//Packet packet = Packet(CONNECTION_ACK, 1, 0, ptr);
-	//void * vptr = packet.serialize();
-    //int n = sendto(sock, vptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
-	//delete(vptr);
 	send_packet(CONNECTION_ACK, 1);
 	cout<<"Connection Acknowledgement Sent\n";
 	this->isConnected = true;
 }
 
-void RFTPServer::fileReq(void *vfilename, int size_of_data)
+bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 {
 	cout<<"In file req.\nSize of data is: "<<size_of_data;
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 	
 	if (!this->isConnected)
-		return;
+		return false;
 	
-	//Read filename
-	//char *filename = (char *) malloc(size_of_data);  //Freed
-
 	char absfilename[6+1+size_of_data];
 	char filename[size_of_data];
 	memcpy(filename, vfilename, size_of_data);		
@@ -66,52 +57,62 @@ void RFTPServer::fileReq(void *vfilename, int size_of_data)
 	strcat(absfilename, "/");
 	strcat(absfilename, filename);
 	cout<<absfilename<<endl;
+
+	if( access(absfilename, F_OK ) == -1 ) {
+		return false;
+	}	
+
+	int fdRead = open(absfilename, 'r');
+	cout<<"fdRead is: "<<fdRead<<endl;
 	
 	//Create a data packet
 	send_packet(FILE_REQUEST_ACK, 3);	
 	cout<<"File req ack sent\n";
 	
-	//void *buffer = malloc(DATA_SIZE);
 	void *data = malloc(DATA_SIZE);
 	memset(data, 0, DATA_SIZE);
 
 	void *tempptr = malloc(PACKET_SIZE);
 	recvfrom(sock,tempptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
+	Packet p = Packet(tempptr);
+	if (p.kind != START_DATA_TRANSFER)
+		return false;	
 	
-
-		
+	//TODO: Change the datasn. !!!!!!!!!!!DO NOT START FROM HARDCODED SEQUENCE NUMBER!!!!!!!!!!!!!!!!!!	
 	int bytesRead = 0;
 	int datasn = 4;
 
-	// TODO: Change this to read file specified by client.
-	int fdRead = open(absfilename, 'r');
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+
 	while(1) {
 		if((bytesRead = read(fdRead, data, DATA_SIZE)) <= 0) break;
-		void *ptr = malloc(PACKET_SIZE);	//Freed
-		cout<<"Sending data packet!"<<endl;
+		void *ptr = malloc(PACKET_SIZE);	
+		cout<<"Data read again.\n";
 		Packet *temp;
+		bool cond = true;
 		do {
 			send_packet(DATA, datasn, bytesRead, data);
+		cout<<"Sending data packet of sequence number: "<<datasn<<endl;
 			memset(ptr, 0, PACKET_SIZE);
 	
-			//cout<<"Waiting for packet from client in file request function.\n";
 			int n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
 			if (n < 0) continue;
 			cout<<"Received Packet.\n";
 
 			temp = new Packet(ptr);
-			//temp.printPacket();
-		} while(temp->kind != DATA_ACK);
+			cond = temp->kind != DATA_ACK;
+			delete(temp);
+		} while(cond);
+		cout<<"Code somehow reaching here...\n";
 		datasn++;
-		delete (temp);
 		delete(ptr);
 	}
 
-	//TODO: Write a function for creating and serializing a packet or can add sendto function too...	
 	cout<<"Sending close connection signal.\n";
 
 	send_packet(CLOSE_CONNECTION, 0);
 	delete(data);
+	return true;
 }
 
 void RFTPServer::receivePacket(){
@@ -129,18 +130,20 @@ void RFTPServer::receivePacket(){
 				ListenAccept();
 				break;
 			case FILE_REQUEST:
-				fileReq(packet.data, packet.sizeOfData);
-				cout<<"File Request function done.\n";
+				if (fileReq(packet.data, packet.sizeOfData))
+					cout<<"File Request function done.\n";
+				else
+					send_packet(FILE_REQ_ERROR, -1);
 				break;	
 			default:
-				cout<<"Matter Zhalay Bhau!"<<endl; 
+				cout<<"Could not recognize the packet kind and thus ignoring the packet."<<endl; 
 		}
 
         }
 	}
 }
 
-bool RFTPServer::send_packet(PacketKind pk, int seq_no) {
+void RFTPServer::send_packet(PacketKind pk, int seq_no) {
 	void *data = malloc(DATA_SIZE);
 	memset(data, 0, DATA_SIZE);
 	Packet packet = Packet(pk, seq_no, 0, data);
@@ -150,7 +153,7 @@ bool RFTPServer::send_packet(PacketKind pk, int seq_no) {
 	delete(ptr);	
 }
 
-bool RFTPServer::send_packet(PacketKind pk, int seq_no, int size, void *data) {
+void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, void *data) {
 	Packet packet = Packet(pk, seq_no, size, data);
 	void *ptr = packet.serialize();
 	sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
