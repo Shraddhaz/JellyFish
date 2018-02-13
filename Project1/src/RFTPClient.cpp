@@ -15,33 +15,21 @@ RFTPClient::~RFTPClient()
 	close(sock);
 }
 
-int RFTPClient::connectAndSend()
+int RFTPClient::connectAndSend(char * hostname)
 {
-	hp = gethostbyname(HOSTNAME);
+	hp = gethostbyname(hostname);
 	if (hp==0) return -1;	
 	
 	memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
 	server.sin_port = htons(PORT_NUMBER);
    	length=sizeof(struct sockaddr_in);
 	
-	#if 0
-	void *buf = malloc(DATA_SIZE);
-	memset(buf, 0, DATA_SIZE);
-	
-
-	void *received_packet = malloc(PACKET_SIZE);
-
-	Packet p = Packet(CONNECTION_REQUEST, 0, 0, buf);	
-	void * serialized_packet = p.serialize();
-	int n=sendto(sock, serialized_packet, PACKET_SIZE, 0,(const struct sockaddr *)&server,length);
-	delete(serialized_packet);
-	#endif
 	send_packet(CONNECTION_REQUEST, 0);
 	void *received_packet = malloc(PACKET_SIZE);
 	memset(received_packet, 0, PACKET_SIZE);
 	int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 	Packet packet = new Packet(received_packet);
-	packet.printPacket();
+	//packet.printPacket();
 
 	delete(received_packet);
 	
@@ -89,23 +77,29 @@ bool RFTPClient::requestFile(char *filename)
 	//cout<<"Checkpoint 3\n";
 	//cout<<"Checkpoint 4\n";
     Packet packet = Packet(received_packet);
-    packet.printPacket();	
+    //packet.printPacket();	
 	memset(received_packet, 0, PACKET_SIZE);
 	
 	send_packet(START_DATA_TRANSFER, 20);
 
 	cout<<"Creating file.\n";
+	bool flag = true;
+	int previousPacketNo = 0;
 	int fdWrite = open(abs_filename, O_CREAT | O_TRUNC| O_WRONLY, 0644);
 	while (1) {
 		int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
 		if (n<= 0) break;
 		Packet pack = Packet(received_packet);
-		cout<<"Received packet in infinite loop.\n";	
-		pack.printPacket();
+
+		if(pack.sequence_number%1000 == 0) flag = !flag;
+		//cout<<"Received packet in infinite loop.\n";	
+		//pack.printPacket();
+		cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION)
 			break;
-		x = write(fdWrite, pack.data, pack.sizeOfData);
-		send_packet(DATA_ACK, 0);
+		if(previousPacketNo != pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
+		if (flag) send_packet(DATA_ACK, 0);
+		previousPacketNo = 	pack.sequence_number;
 	}
 	
 	/*

@@ -18,6 +18,11 @@ RFTPServer::RFTPServer(){
 	server.sin_family=AF_INET;
    	server.sin_addr.s_addr=INADDR_ANY;
    	server.sin_port=htons(PORT_NUMBER);
+
+
+	read_timeout.tv_sec = 0;
+	read_timeout.tv_usec = 100000;
+
 	isConnected = false;
 }
 
@@ -45,6 +50,7 @@ void RFTPServer::ListenAccept(){
 void RFTPServer::fileReq(void *vfilename, int size_of_data)
 {
 	cout<<"In file req.\nSize of data is: "<<size_of_data;
+	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 	
 	if (!this->isConnected)
 		return;
@@ -83,15 +89,21 @@ void RFTPServer::fileReq(void *vfilename, int size_of_data)
 		if((bytesRead = read(fdRead, data, DATA_SIZE)) <= 0) break;
 		void *ptr = malloc(PACKET_SIZE);	//Freed
 		cout<<"Sending data packet!"<<endl;
-		send_packet(DATA, datasn, bytesRead, data);
-		memset(ptr, 0, PACKET_SIZE);
+		Packet *temp;
+		do {
+			send_packet(DATA, datasn, bytesRead, data);
+			memset(ptr, 0, PACKET_SIZE);
 	
-		cout<<"Waiting for packet from client in file request function.\n";
-		recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
-		cout<<"Received Packet.\n";
-		Packet temp = Packet(ptr);
-		temp.printPacket();
+			//cout<<"Waiting for packet from client in file request function.\n";
+			int n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
+			if (n < 0) continue;
+			cout<<"Received Packet.\n";
+
+			temp = new Packet(ptr);
+			//temp.printPacket();
+		} while(temp->kind != DATA_ACK);
 		datasn++;
+		delete (temp);
 		delete(ptr);
 	}
 

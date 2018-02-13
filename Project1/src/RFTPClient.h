@@ -22,7 +22,7 @@ class RFTPClient{
 	public:
 		RFTPClient();
 		~RFTPClient();
-		int connectAndSend();	
+		int connectAndSend(char * hostname);	
 		int sendRequest();
 		void receivePacket();
 		bool requestFile(char *filename);
