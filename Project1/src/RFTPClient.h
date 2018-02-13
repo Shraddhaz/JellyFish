@@ -7,24 +7,25 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include "Packet.h"
 #include <iostream>
 #include <fcntl.h>
+#include "Packet.h"
+
 
 class RFTPClient{
 	private:
-		int sock;
-		unsigned int length;
-		struct sockaddr_in server, from; 
-   		struct hostent *hp; 
+		int sock;                                                          //Socket
+		unsigned int length;                                               //Unsigned int for length
+		struct sockaddr_in server, from;                                   //Cleint and server struct
+   		struct hostent *hp;                                                //Host net struct
 
 	public:
-		RFTPClient();
-		~RFTPClient();
-		int connectAndSend(char * hostname);	
-		int sendRequest();
-		void receivePacket();
-		bool requestFile(char *filename);
-		void send_packet(PacketKind pk, int seq_no);
-		void send_packet(PacketKind pk, int seq_no, int size, void *data);
+		RFTPClient();                                                       //RFTP Client Constructor
+		~RFTPClient();                                                      //RFTP Client Destructor
+		int connectAndSend(char * hostname);	                            //Connect to Server
+		int sendRequest();                                                  //Send request to client
+		void receivePacket();                                               //Receive packet from server
+		bool requestFile(char *filename);                                   //Request file from Server
+		void send_packet(PacketKind pk, int seq_no);                        //Send packet
+		void send_packet(PacketKind pk, int seq_no, int size, void *data);  //Send packet with data
 };

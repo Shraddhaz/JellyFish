@@ -1,24 +1,28 @@
-#define PORT_NUMBER 2939	//This will be our default port for our protocol.
+/* Constants.h has all the default constants used throughout the programs */
 
-#define DATA_SIZE 1024
+#define PORT_NUMBER 2939	//Default port for our protocol.
 
+#define DATA_SIZE 1024      //Default size of data sent
+
+//Enum for various types of packets with PacketKind as its object
 typedef enum {
-	CONNECTION_REQUEST,
-	CONNECTION_ACK,
-	FILE_REQUEST,
-	FILE_REQUEST_ACK,
-	FILE_REQ_ERROR,
-	START_DATA_TRANSFER,
-	DATA,
-	DATA_ACK,
-	CLOSE_CONNECTION,
+	CONNECTION_REQUEST,                             //Connection Request
+	CONNECTION_ACK,                                 //Connection Acknowledgement
+	FILE_REQUEST,                                   //File Request
+	FILE_REQUEST_ACK,                               //File Request Acknowledgement
+	FILE_REQ_ERROR,                                 //File Request Error
+	START_DATA_TRANSFER,                            //Begin File Transfer
+	DATA,                                           //Data only
+	DATA_ACK,                                       //Data Acknowledgement
+	CLOSE_CONNECTION,                               //Close Connection
 } PacketKind;
 
-#define SEQNO_LOC sizeof(PacketKind)
-#define DATA_SIZE_LOC (SEQNO_LOC + sizeof(int))
-#define DATA_LOC (DATA_SIZE_LOC + sizeof(int)) 
+//Size of packet elements
+#define SEQNO_LOC sizeof(PacketKind)                //Default size of packet type
+#define DATA_SIZE_LOC (SEQNO_LOC + sizeof(int))     //Default size of sequence number
+#define DATA_LOC (DATA_SIZE_LOC + sizeof(int))      //Default size of data
 
-#define PACKET_SIZE (sizeof(PacketKind) + sizeof(int) + sizeof(int) + DATA_SIZE)
+#define PACKET_SIZE (sizeof(PacketKind) + sizeof(int) + sizeof(int) + DATA_SIZE)    //Default packet size
 
-#define client_fs "ClientFileSystem"
-#define server_fs "ServerFileSystem"
+#define client_fs "ClientFileSystem"                //Alias for ClientFileSystem
+#define server_fs "ServerFileSystem"                //Alias for ServerFileSystem
