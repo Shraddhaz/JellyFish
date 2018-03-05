@@ -7,24 +7,24 @@ RFTPServer constructor used to create a socket and initialize
  all the values used by the server
 */
 RFTPServer::RFTPServer(){
-	sock = socket(AF_INET, SOCK_DGRAM, 0);
-   	sock_ack  = socket(AF_INET, SOCK_DGRAM, 0);
+	sockS = socket(AF_INET, SOCK_DGRAM, 0);
+   	sockR  = socket(AF_INET, SOCK_DGRAM, 0);
 
-	if (sock < 0 || sock_ack < 0) 
+	if (sockS < 0 || sockR < 0)
 		cout<<"Error Opening Socket"<<endl;
-   	length = sizeof(server);
-   	memset(&server, 0, length);
+   	length = sizeof(serverS);
+   	memset(&serverS, 0, length);
 	
-	length_ack = sizeof(server_ack);
-    memset(&server_ack, 0, length_ack);
+	lengthAck = sizeof(serverR);
+    memset(&serverR, 0, lengthAck);
 	
-	server.sin_family=AF_INET;
-   	server.sin_addr.s_addr=INADDR_ANY;
-   	server.sin_port=htons(PORT_NUMBER_DATA);
+	serverS.sin_family=AF_INET;
+   	serverS.sin_addr.s_addr=INADDR_ANY;
+   	serverS.sin_port=htons(PORT_NUMBER_DATA);
 
-	server_ack.sin_family=AF_INET;
-    server_ack.sin_addr.s_addr=INADDR_ANY;
-    server_ack.sin_port=htons(PORT_NUMBER_ACK);
+	serverR.sin_family=AF_INET;
+    serverR.sin_addr.s_addr=INADDR_ANY;
+    serverR.sin_port=htons(PORT_NUMBER_ACK);
 
 	read_timeout.tv_sec = 0;
 	read_timeout.tv_usec = 100000;
@@ -39,7 +39,7 @@ RFTPServer::RFTPServer(){
 Bind() is used to bind the socket with the socket struct i.e. Port number and IP address
 */
 void RFTPServer :: Bind(){
-   if (bind(sock,(struct sockaddr *)&server,length)<0||bind(sock_ack, (struct sockaddr *)&server_ack,length_ack)<0) 
+   if ( (bind(sockS,(struct sockaddr *)&serverS,length)<0) || (bind(sockR,(struct sockaddr *)&serverR,lengthAck)<0))
        cout<<"Binding Error"<<endl;
    fromlen = sizeof(struct sockaddr_in);
    //fromlen_ack = sizeof(struct sockaddr_in);   
@@ -51,7 +51,7 @@ ListenAccept() is used to listen to client and accept connection request
 */
 void RFTPServer::ListenAccept(){
 	cout<<"Connection Request Received\n";
-	send_packet(CONNECTION_ACK, 1);
+    send_packet(sockS, CONNECTION_ACK, 1);
 	cout<<"Connection Acknowledgement Sent\n";
 	this->isConnected = true;
 }
@@ -86,14 +86,14 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 	cout<<"fdRead is: "<<fdRead<<endl;
 	
 	//Create a data packet
-	send_packet(FILE_REQUEST_ACK, 3);	
+    send_packet(sockS, FILE_REQUEST_ACK, 3);
 	cout<<"File req ack sent\n";
 	
 	void *data = malloc(DATA_SIZE);
 	memset(data, 0, DATA_SIZE);
 
 	void *tempptr = malloc(PACKET_SIZE);
-	recvfrom(sock,tempptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
+	recvfrom(sockR, tempptr, PACKET_SIZE, 0, (struct sockaddr *)&clientR, &fromlen);
 	Packet p = Packet(tempptr);
 	if (p.kind != START_DATA_TRANSFER)
 		return false;	
@@ -101,7 +101,7 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 	int bytesRead = 0;
 	int datasn = 4;
 
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+	setsockopt(sockS, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 	int total_transmissions = 0;
 	while(1) {
 		if((bytesRead = read(fdRead, data, DATA_SIZE)) <= 0) break;
@@ -113,7 +113,7 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 			total_transmissions++;
 			memset(ptr, 0, PACKET_SIZE);
 	
-			int n = recvfrom(sock,ptr,PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen);
+			int n = recvfrom(sockR, ptr,PACKET_SIZE,0,(struct sockaddr *)&clientS, &fromlen);
 			if (n < 0) continue;
 				cout<<"Received Packet.\n";
 
@@ -128,9 +128,9 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
 
-	send_packet(CLOSE_CONNECTION, 0);
+    send_packet(sockS, CLOSE_CONNECTION, 0);
 	delete(data);
-	setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &reset_timeout, sizeof reset_timeout);
+	setsockopt(sockS, SOL_SOCKET, SO_RCVTIMEO, &reset_timeout, sizeof reset_timeout);
 	return true;
 }
 
@@ -139,11 +139,11 @@ receivePacket() is used to receive packets like CONNECTION_REQUEST,
  FILE_REQUEST and call the appropriate functions to handle them
 */
 void RFTPServer::receivePacket(){
-	void *buf = malloc(PACKET_SIZE);  //To read a packet from socket.
+	void *buf = malloc(PACKET_SIZE);  //To read a packet clientS socket.
 	int n; //Number of bytes read.
     while(1) {
-		if (n = recvfrom(sock_ack,buf, PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen) < 0) 
-		cout<<"Nothing read from socket"<<endl;
+		if (n = recvfrom(sockR, buf, PACKET_SIZE,0,(struct sockaddr *)&clientS,&fromlen) < 0)
+		cout<<"Nothing read clientS socket"<<endl;
         else
         {
          	Packet packet = Packet(buf);
@@ -156,12 +156,11 @@ void RFTPServer::receivePacket(){
 				if (fileReq(packet.data, packet.sizeOfData))
 					cout<<"File Request function done.\n";
 				else
-					send_packet(FILE_REQ_ERROR, -1);
+                    send_packet(sockS, FILE_REQ_ERROR, -1);
 				break;	
 			default:
 				cout<<"Could not recognize the packet kind and thus ignoring the packet."<<endl; 
 			}
-
         }
 	}
 }
@@ -172,12 +171,14 @@ Type of packet sent here is mostly an acknowledgement packet
 @PacketKind is the type of packet being send
 @seq_no is the sequence number of the packet
 */
-void RFTPServer::send_packet(PacketKind pk, int seq_no) {
+void RFTPServer::send_packet(int socket, PacketKind pk, int seq_no) {
 	void *data = malloc(DATA_SIZE);
 	memset(data, 0, DATA_SIZE);
 	Packet packet = Packet(pk, seq_no, 0, data);
 	void *ptr = packet.serialize();
-	sendto(sock_ack, ptr, PACKET_SIZE,0,(struct sockaddr *i)&from,fromlen);
+	if(pk == CLOSE_CONNECTION)
+		sendto(socket, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
+	sendto(socket, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientS,fromlen);
 	delete(data);	
 	delete(ptr);	
 }
@@ -192,6 +193,6 @@ Type of packet sent here is mostly a data packet
 void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, void *data) {
 	Packet packet = Packet(pk, seq_no, size, data);
 	void *ptr = packet.serialize();
-	sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+	sendto(sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 	delete(ptr);	
 }

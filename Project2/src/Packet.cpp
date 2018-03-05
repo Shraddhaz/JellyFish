@@ -12,10 +12,10 @@ using namespace std;
 */
 void* Packet:: serialize(){
 	void *buf = malloc(PACKET_SIZE);                                    //Allocating memory for packet
-    memcpy(buf, &(this->kind), sizeof(PacketKind));                     //Copying packet kind from packet to the buffer
-    memcpy((buf + SEQNO_LOC), &(this->sequence_number), sizeof(int));   //Copying sequence number from packet to buffer
-    memcpy((buf + DATA_SIZE_LOC), &(this->sizeOfData), sizeof(int));    //Copying size of data to send from packet to buffer
-	memcpy((buf + DATA_LOC), this->data, DATA_SIZE);                    //Copying data from packet to buffer
+    memcpy(buf, &(this->kind), sizeof(PacketKind));                     //Copying packet kind clientS packet to the buffer
+    memcpy((buf + SEQNO_LOC), &(this->sequence_number), sizeof(int));   //Copying sequence number clientS packet to buffer
+    memcpy((buf + DATA_SIZE_LOC), &(this->sizeOfData), sizeof(int));    //Copying size of data to send clientS packet to buffer
+	memcpy((buf + DATA_LOC), this->data, DATA_SIZE);                    //Copying data clientS packet to buffer
 	return buf;
 }
 

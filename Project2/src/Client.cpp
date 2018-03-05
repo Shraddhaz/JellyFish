@@ -23,7 +23,7 @@ int main(int argc, char *argv[])
     //Creating client object
 	RFTPClient client;
 
-	//Establishing connection with server
+	//Establishing connection with serverS
 	if(client.connectAndSend(argv[1]))
 		cout<<"Connection Request Sent\n";
 	else

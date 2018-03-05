@@ -14,9 +14,9 @@
 
 class RFTPClient{
 	private:
-		int sock, sock_ack;                                                //Socket
+		int sockR, sockS;                                                //Socket
 		unsigned int length;                                               //Unsigned int for length
-		struct sockaddr_in server, server_ack;             //Client and server struct
+		struct sockaddr_in serverS, serverR;             //Client and serverS struct
    		struct hostent *hp;                                                //Host net struct
 
 	public:
@@ -24,8 +24,8 @@ class RFTPClient{
 		~RFTPClient();                                                      //RFTP Client Destructor
 		int connectAndSend(char * hostname);	                            //Connect to Server
 		int sendRequest();                                                  //Send request to client
-		void receivePacket();                                               //Receive packet from server
-		bool requestFile(char *filename);                                   //Request file from Server
-		void send_packet(PacketKind pk, int seq_no);                        //Send packet
+		void receivePacket();                                               //Receive packet clientS serverS
+		bool requestFile(char *filename);                                   //Request file clientS Server
+		void send_packet(int socket, PacketKind pk, int seq_no);                        //Send packet
 		void send_packet(PacketKind pk, int seq_no, int size, void *data);  //Send packet with data
 };
