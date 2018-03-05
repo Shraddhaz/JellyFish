@@ -7,8 +7,10 @@ RFTP Client constructor that creates a socket
 RFTPClient::RFTPClient()
 {
 	server.sin_family = AF_INET;
-	sock= socket(AF_INET, SOCK_DGRAM, 0);
-	if (sock < 0) 
+	server_ack.sin_family = AF_INET;
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	sock_ack = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sock < 0||sock_ack <0) 
 		cout<<"Error creating socket."<<endl;
 }
 /**
@@ -16,6 +18,7 @@ RFTPClient destructor that closes the socket
 */
 RFTPClient::~RFTPClient()
 {
+	close(sock_ack);
 	close(sock);
 }
 
@@ -31,14 +34,17 @@ int RFTPClient::connectAndSend(char * hostname)
 	if (hp==0) return -1;	//Host not found.	
 	
 	memcpy((char *)&server.sin_addr, (char *)hp->h_addr, hp->h_length);
-	server.sin_port = htons(PORT_NUMBER);
+	//memcpy((char *)&server_ack.sin_addr, (char *)hp->h_addr, hp->h_length);
+	server.sin_port = htons(PORT_NUMBER_DATA);
+	//server_ack.sin_port = htons(PORT_NUMBER_ACK);
+		
    	length=sizeof(struct sockaddr_in);
 
 	//Send request for connection
 	send_packet(CONNECTION_REQUEST, 0);
 	void *received_packet = malloc(PACKET_SIZE);
 	memset(received_packet, 0, PACKET_SIZE);
-	int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&from, &length);
+	int n = recvfrom(sock, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&server_ack, &length);
 	Packet packet = Packet(received_packet);
 
 	//Checks if acknowledgement is received

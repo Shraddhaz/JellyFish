@@ -1,3 +1,4 @@
+
 #include "RFTPServer.h"
 using namespace std;
 
@@ -6,16 +7,24 @@ RFTPServer constructor used to create a socket and initialize
  all the values used by the server
 */
 RFTPServer::RFTPServer(){
-	sock=socket(AF_INET, SOCK_DGRAM, 0);
-   	
-	if (sock < 0) cout<<"Opening socket"<<endl;
-   		length = sizeof(server);
-   	memset(&server,0,length);
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+   	sock_ack  = socket(AF_INET, SOCK_DGRAM, 0);
+
+	if (sock < 0 || sock_ack < 0) 
+		cout<<"Error Opening Socket"<<endl;
+   	length = sizeof(server);
+   	memset(&server, 0, length);
+	
+	length_ack = sizeof(server_ack);
+    memset(&server_ack, 0, length_ack);
 	
 	server.sin_family=AF_INET;
    	server.sin_addr.s_addr=INADDR_ANY;
-   	server.sin_port=htons(PORT_NUMBER);
+   	server.sin_port=htons(PORT_NUMBER_DATA);
 
+	server_ack.sin_family=AF_INET;
+    server_ack.sin_addr.s_addr=INADDR_ANY;
+    server_ack.sin_port=htons(PORT_NUMBER_ACK);
 
 	read_timeout.tv_sec = 0;
 	read_timeout.tv_usec = 100000;
@@ -30,9 +39,10 @@ RFTPServer::RFTPServer(){
 Bind() is used to bind the socket with the socket struct i.e. Port number and IP address
 */
 void RFTPServer :: Bind(){
-   if (bind(sock,(struct sockaddr *)&server,length)<0) 
-       cout<<"binding"<<endl;
+   if (bind(sock,(struct sockaddr *)&server,length)<0||bind(sock_ack, (struct sockaddr *)&server_ack,length_ack)<0) 
+       cout<<"Binding Error"<<endl;
    fromlen = sizeof(struct sockaddr_in);
+   //fromlen_ack = sizeof(struct sockaddr_in);   
    cout<<"Bind complete\n";
 }
 
@@ -41,7 +51,6 @@ ListenAccept() is used to listen to client and accept connection request
 */
 void RFTPServer::ListenAccept(){
 	cout<<"Connection Request Received\n";
-	cout<<"Pointer ptr created.";
 	send_packet(CONNECTION_ACK, 1);
 	cout<<"Connection Acknowledgement Sent\n";
 	this->isConnected = true;
@@ -57,7 +66,6 @@ file transfer.
 bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 {
 	cout<<"In file req.\nSize of data is: "<<size_of_data;
-	
 	if (!this->isConnected)
 		return false;
 	
@@ -134,7 +142,7 @@ void RFTPServer::receivePacket(){
 	void *buf = malloc(PACKET_SIZE);  //To read a packet from socket.
 	int n; //Number of bytes read.
     while(1) {
-		if (n = recvfrom(sock,buf, PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen) < 0) 
+		if (n = recvfrom(sock_ack,buf, PACKET_SIZE,0,(struct sockaddr *)&from,&fromlen) < 0) 
 		cout<<"Nothing read from socket"<<endl;
         else
         {
@@ -169,7 +177,7 @@ void RFTPServer::send_packet(PacketKind pk, int seq_no) {
 	memset(data, 0, DATA_SIZE);
 	Packet packet = Packet(pk, seq_no, 0, data);
 	void *ptr = packet.serialize();
-	sendto(sock, ptr, PACKET_SIZE,0,(struct sockaddr *)&from,fromlen);
+	sendto(sock_ack, ptr, PACKET_SIZE,0,(struct sockaddr *i)&from,fromlen);
 	delete(data);	
 	delete(ptr);	
 }

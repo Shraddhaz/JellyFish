@@ -19,10 +19,12 @@ receiving packets
 
 class RFTPServer {
 	private:
-		int sock, length;
-   		socklen_t fromlen;                                                      //Client length
+		int sock, sock_ack, length, length_ack;
+   		socklen_t fromlen;                                         //Client length
    		struct sockaddr_in server;                                              //Server's socket struct
+		struct sockaddr_in server_ack;
    		struct sockaddr_in from;                                                //Client's socket struct
+		struct sockaddr_in from_ack;
 		bool isConnected;                                                       //Connection established or not
 		struct timeval read_timeout;                                            //Timeout for reading data
 		struct timeval reset_timeout;                                           //Timeout after reset

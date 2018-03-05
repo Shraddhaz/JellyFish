@@ -14,9 +14,9 @@
 
 class RFTPClient{
 	private:
-		int sock;                                                          //Socket
+		int sock, sock_ack;                                                //Socket
 		unsigned int length;                                               //Unsigned int for length
-		struct sockaddr_in server, from;                                   //Cleint and server struct
+		struct sockaddr_in server, server_ack;             //Client and server struct
    		struct hostent *hp;                                                //Host net struct
 
 	public:

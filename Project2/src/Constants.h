@@ -1,7 +1,7 @@
 /* Constants.h has all the default constants used throughout the programs */
 
-#define PORT_NUMBER 2939	//Default port for our protocol.
-
+#define PORT_NUMBER_DATA 2939	//Default port for sender
+#define PORT_NUMBER_ACK 1613	//Default port for receiver
 #define DATA_SIZE 1024      //Default size of data sent
 
 //Enum for various types of packets with PacketKind as its object
