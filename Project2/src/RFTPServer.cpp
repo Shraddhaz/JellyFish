@@ -101,7 +101,7 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 	int bytesRead = 0;
 	int datasn = 4;
 
-	setsockopt(sockS, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+	setsockopt(sockR, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
 	int total_transmissions = 0;
 	while(1) {
 		if((bytesRead = read(fdRead, data, DATA_SIZE)) <= 0) break;
@@ -130,7 +130,7 @@ bool RFTPServer::fileReq(void *vfilename, int size_of_data)
 
     send_packet(sockS, CLOSE_CONNECTION, 0);
 	delete(data);
-	setsockopt(sockS, SOL_SOCKET, SO_RCVTIMEO, &reset_timeout, sizeof reset_timeout);
+	setsockopt(sockR, SOL_SOCKET, SO_RCVTIMEO, &reset_timeout, sizeof reset_timeout);
 	return true;
 }
 
