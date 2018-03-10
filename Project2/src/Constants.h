@@ -1,4 +1,5 @@
 /* Constants.h has all the default constants used throughout the programs */
+#include <netinet/in.h>
 
 #define PORT_NUMBER_DATA 2939	//Default port for sender
 #define PORT_NUMBER_ACK 1613	//Default port for receiver
@@ -16,6 +17,7 @@ typedef enum {
 	DATA_ACK,                                       //Data Acknowledgement
 	CLOSE_CONNECTION,                               //Close Connection
 } PacketKind;
+
 
 //Size of packet elements
 #define SEQNO_LOC sizeof(PacketKind)                //Default size of packet type

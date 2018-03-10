@@ -16,10 +16,12 @@ receiving packets
 #include "Packet.h"
 #include <iostream>
 #include <fcntl.h>
+#include <queue>
 
 class RFTPServer {
-	private:
+	public:
 		int sockS, sockR, length, lengthAck;
+		int fdRead;
    		socklen_t fromlen;                                         //Client length
    		struct sockaddr_in serverS;                                              //Server's socket struct
 		struct sockaddr_in serverR;
@@ -29,12 +31,15 @@ class RFTPServer {
 		struct timeval read_timeout;                                            //Timeout for reading data
 		struct timeval reset_timeout;                                           //Timeout after reset
 
-	public:
+
 		RFTPServer();                                                           //RFTPServer Constructor
 		void Bind();                                                            //Binding Server socket to Portno and IP
 		void ListenAccept();                                                    //Listen to request and accept
 		void receivePacket();                                                   //Receive packet and deserialize it
 		bool fileReq(void * ptr, int size);                                     //Handle retransmission and timeout
-		void send_packet(int socket, PacketKind pk, int sn);                                //Send packet
+		void send_packet(PacketKind pk, int sn);                                //Send packet
 		void send_packet(PacketKind pk, int sn, int size, void *data);          //Send packet with data
 };
+
+
+void* receiver(void* rcvargs);

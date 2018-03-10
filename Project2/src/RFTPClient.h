@@ -10,7 +10,7 @@
 #include <iostream>
 #include <fcntl.h>
 #include "Packet.h"
-
+#include <queue>
 
 class RFTPClient{
 	private:
@@ -26,6 +26,6 @@ class RFTPClient{
 		int sendRequest();                                                  //Send request to client
 		void receivePacket();                                               //Receive packet clientS serverS
 		bool requestFile(char *filename);                                   //Request file clientS Server
-		void send_packet(int socket, PacketKind pk, int seq_no);                        //Send packet
+		void send_packet(int sock, PacketKind pk, int seq_no);                        //Send packet
 		void send_packet(PacketKind pk, int seq_no, int size, void *data);  //Send packet with data
 };

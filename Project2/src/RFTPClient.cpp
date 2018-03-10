@@ -54,7 +54,6 @@ int RFTPClient::connectAndSend(char * hostname)
 	if (n < 0)
 		return 0;
 	return 1;
-
 }
 
 /**
@@ -84,7 +83,7 @@ bool RFTPClient::requestFile(char *filename)
 	send_packet(FILE_REQUEST, 2, len, vfilename);
 
 	received_packet = malloc(PACKET_SIZE);
-    recvfrom(sockS, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&serverS, &length);
+    recvfrom(sockS, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&serverR, &length);
     Packet packet = Packet(received_packet);
 
 	//Wating for acknowledgement clientS Server
@@ -109,7 +108,7 @@ bool RFTPClient::requestFile(char *filename)
 			break;
 		}
 		Packet pack = Packet(received_packet);
-		if(pack.sequence_number%1000 == 0) flag = !flag;
+//		if(pack.sequence_number%1000 == 0) flag = !flag;
 		cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
 			return_val = true;
@@ -120,8 +119,8 @@ bool RFTPClient::requestFile(char *filename)
 			break;
 		}
 		if((previousPacketNo+1) == pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
-		if (flag)
-            send_packet(sockS, DATA_ACK, 0);
+		//if (flag)
+        //    send_packet(sockS, DATA_ACK, 0);
 		previousPacketNo = 	pack.sequence_number;
 	}
 

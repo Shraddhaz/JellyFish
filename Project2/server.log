@@ -1,0 +1,21 @@
+Bind complete
+****************** Printing Packet *********************
+Kind :0
+Sequence number0
+Connection Request Received
+Connection Acknowledgement Sent
+****************** Printing Packet *********************
+Kind :2
+Sequence number2
+In file req.
+Size of data is: 9Filename requested: test.txt
+ServerFileSystem/test.txt
+fdRead is: 5
+File req ack sent
+Number of re-transmissions: 0
+Sending close connection signal.
+File Request function done.
+****************** Printing Packet *********************
+Kind :7
+Sequence number0
+Could not recognize the packet kind and thus ignoring the packet.
