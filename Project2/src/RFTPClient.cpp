@@ -108,6 +108,9 @@ bool RFTPClient::requestFile(char *filename)
 			break;
 		}
 		Packet pack = Packet(received_packet);
+		fileQueue.push(pack);
+		ackQueue.push(pack.sequence_number);
+		
 //		if(pack.sequence_number%1000 == 0) flag = !flag;
 		cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
@@ -123,7 +126,12 @@ bool RFTPClient::requestFile(char *filename)
         //    send_packet(sockS, DATA_ACK, 0);
 		previousPacketNo = 	pack.sequence_number;
 	}
-
+		int a = ackQueue.size();
+	
+	for (int i=0; i< a; i++){
+		cout<<((int)ackQueue.front())<<endl;
+		ackQueue.pop();
+	}
 	//Free memory
 	delete(received_packet);
 	delete(vfilename);

@@ -16,6 +16,7 @@ typedef enum {
 	DATA,                                           //Data only
 	DATA_ACK,                                       //Data Acknowledgement
 	CLOSE_CONNECTION,                               //Close Connection
+	NONE
 } PacketKind;
 
 

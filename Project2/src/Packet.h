@@ -13,7 +13,8 @@ class Packet {
 	public:
 		void* serialize();                                      //Serializer
 		Packet(void *);                                         //Constructor which is the Deserializer
+		Packet();                                         //Constructor which is the Deserializer
 		Packet(PacketKind pk,int sn, int size, void *data);     //Parameterized constructor
-		~Packet();	                                            //Destructor for Packet class
+//		~Packet();	                                            //Destructor for Packet class
 		void printPacket();                                     //Printing packet elements
 };

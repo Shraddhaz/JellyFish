@@ -45,6 +45,13 @@ Packet::Packet(PacketKind kind,int sequence_number , int sizeOfData, void *pdata
 	memcpy(this->data, pdata, DATA_SIZE);
 }
 
+Packet::Packet() {
+	this->kind = NONE;
+	this->data = malloc(DATA_SIZE);
+	this->sequence_number = -1;
+	this->sizeOfData = -1;
+}
+
 //Function to display packet elements like the kind and sequence number
 void Packet::printPacket()
 {
@@ -52,9 +59,10 @@ void Packet::printPacket()
 	cout<<"Kind :"<<this->kind<<endl;;                                      //Print the packet type
 	cout<<"Sequence number"<<this->sequence_number<<endl;                   //Print the sequence number
 }
-
+#if 0
 //Destructor for packet that deallocates memory allocated to data
 Packet::~Packet()
 {
 	free(this->data);                                                       //Free the memory allocated for data
 }
+#endif
