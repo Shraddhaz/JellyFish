@@ -36,7 +36,7 @@ class RFTPServer {
 		void Bind();                                                            //Binding Server socket to Portno and IP
 		void ListenAccept();                                                    //Listen to request and accept
 		void receivePacket();                                                   //Receive packet and deserialize it
-		bool fileReq(uint8_t * ptr, int size);                                     //Handle retransmission and timeout
+		bool fileReq(uint8_t *ptr, int size);                                     //Handle retransmission and timeout
 		void send_packet(PacketKind pk, int sn);                                //Send packet
 		void send_packet(PacketKind pk, int sn, int size, uint8_t *data);          //Send packet with data
 };

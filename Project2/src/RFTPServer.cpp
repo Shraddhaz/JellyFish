@@ -63,7 +63,7 @@ file transfer.
 @param vfilename is the file we transfer
 @param size_of_data is the size of data theat we transfer
 */
-bool RFTPServer::fileReq(uint8_t vfilename, int size_of_data)
+bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 {
 	cout<<"In file req.\nSize of data is: "<<size_of_data;
 	if (!this->isConnected)
@@ -92,7 +92,7 @@ bool RFTPServer::fileReq(uint8_t vfilename, int size_of_data)
 	uint8_t data[DATA_SIZE];
 	memset(data, 0, DATA_SIZE);
 
-	uint8_t tempptr[PACKET_SIZ];
+	uint8_t tempptr[PACKET_SIZE];
 	recvfrom(sockR, tempptr, PACKET_SIZE, 0, (struct sockaddr *)&clientR, &fromlen);
 	Packet p = Packet(tempptr);
 	if (p.kind != START_DATA_TRANSFER)
@@ -143,11 +143,10 @@ void* receiver(void* rcvargs) {
 
 			temp = new Packet(ptr);
 			cond = temp->kind != DATA_ACK;
-			temp->printPacket();		
-			delete(temp);
+			temp->printPacket();
+			delete(temp)		
 		} while(cond);
 		datasn++;
-		delete(ptr);
 	}
 
 }
@@ -214,7 +213,6 @@ Type of packet sent here is mostly a data packet
 */
 void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, void *data) {
 	Packet packet = Packet(pk, seq_no, size, data);
-	void *ptr = packet.serialize();
+	uint8_t *ptr = packet.serialize();
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
-	delete(ptr);	
 }
