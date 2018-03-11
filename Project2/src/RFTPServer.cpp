@@ -89,10 +89,10 @@ bool RFTPServer::fileReq(uint8_t vfilename, int size_of_data)
     send_packet(FILE_REQUEST_ACK, 3);
 	cout<<"File req ack sent\n";
 	
-	void *data = malloc(DATA_SIZE);
+	uint8_t data[DATA_SIZE];
 	memset(data, 0, DATA_SIZE);
 
-	void *tempptr = malloc(PACKET_SIZE);
+	uint8_t tempptr[PACKET_SIZ];
 	recvfrom(sockR, tempptr, PACKET_SIZE, 0, (struct sockaddr *)&clientR, &fromlen);
 	Packet p = Packet(tempptr);
 	if (p.kind != START_DATA_TRANSFER)
@@ -116,10 +116,9 @@ bool RFTPServer::fileReq(uint8_t vfilename, int size_of_data)
 	}
 
 	//pthread_join(recvThread, NULL);
-	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
+	cout<<"Number of re-transmissions: "<i<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
     send_packet(CLOSE_CONNECTION, 0);
-	delete(data);
 	return true;
 }
 
@@ -129,9 +128,9 @@ void* receiver(void* rcvargs) {
 	RFTPServer *rtfpserver = (RFTPServer *) rcvargs; 
 	//setsockopt(rtfpserver->sockR, SOL_SOCKET, SO_RCVTIMEO, &(rtfpserver->read_timeout), sizeof rtfpserver->read_timeout);
 	int total_transmissions = 0;
-	void* data = malloc(DATA_SIZE);
+	uint8_t data;
 	while(1) {
-		void *ptr = malloc(PACKET_SIZE);	
+		uint8_t ptr;	
 		Packet *temp;
 		bool cond = true;
 		do {
