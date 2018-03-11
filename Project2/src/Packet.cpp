@@ -10,25 +10,24 @@ using namespace std;
     for packet and copying from packet to buffer
     @return buffer used for file transfer
 */
-void* Packet:: serialize(){
-	void *buf = malloc(PACKET_SIZE);                                    //Allocating memory for packet
-    memcpy(buf, &(this->kind), sizeof(PacketKind));                     //Copying packet kind clientS packet to the buffer
-    memcpy((buf + SEQNO_LOC), &(this->sequence_number), sizeof(int));   //Copying sequence number clientS packet to buffer
-    memcpy((buf + DATA_SIZE_LOC), &(this->sizeOfData), sizeof(int));    //Copying size of data to send clientS packet to buffer
-	memcpy((buf + DATA_LOC), this->data, DATA_SIZE);                    //Copying data clientS packet to buffer
-	return buf;
+uint8_t* Packet:: serialize(){
+	uint8_t buffer[PACKET_SIZE];
+    memcpy(buffer, &(this->kind), sizeof(PacketKind));                     //Copying packet kind clientS packet to the buffer
+    memcpy((buffer + SEQNO_LOC), &(this->sequence_number), sizeof(int));   //Copying sequence number clientS packet to buffer
+    memcpy((buffer + DATA_SIZE_LOC), &(this->sizeOfData), sizeof(int));    //Copying size of data to send clientS packet to buffer
+	memcpy((buffer + DATA_LOC), this->data, DATA_SIZE);                    //Copying data clientS packet to buffer
+	return buffer;
 }
 
 /** Constructor for packet which is the deserializer that copies data
     from the buffer to the received packet
     @param buf is the buffer from which we deserialize
 */
-Packet::Packet(void *buf){
-	memcpy(&(this->kind), buf, sizeof(PacketKind));	
-	memcpy(&(this->sequence_number), (buf + SEQNO_LOC), sizeof(int));
-	memcpy(&(this->sizeOfData), (buf + DATA_SIZE_LOC), sizeof(int));
-	this->data = malloc(DATA_SIZE);
-	memcpy(this->data, (buf + DATA_LOC), DATA_SIZE);
+Packet::Packet(uint8_t * buffer){
+	memcpy(&(this->kind), buffer, sizeof(PacketKind));	
+	memcpy(&(this->sequence_number), (buffer + SEQNO_LOC), sizeof(int));
+	memcpy(&(this->sizeOfData), (buffer + DATA_SIZE_LOC), sizeof(int));
+	memcpy(this->data, (buffer + DATA_LOC), DATA_SIZE);
 }
 
 /** Parametrized constructor for creating packet using the given parameters
@@ -37,19 +36,11 @@ Packet::Packet(void *buf){
     @param sizeOfData is the size of the data transferred
     @param pdata is the pointer to the transfered data
 */
-Packet::Packet(PacketKind kind,int sequence_number , int sizeOfData, void *pdata){
+Packet::Packet(PacketKind kind,int sequence_number , int sizeOfData, uint8_t *pdata){
 	this->kind = kind;
 	this->sequence_number = sequence_number;
 	this->sizeOfData = sizeOfData;
-	this->data = malloc(DATA_SIZE);
 	memcpy(this->data, pdata, DATA_SIZE);
-}
-
-Packet::Packet() {
-	this->kind = NONE;
-	this->data = malloc(DATA_SIZE);
-	this->sequence_number = -1;
-	this->sizeOfData = -1;
 }
 
 //Function to display packet elements like the kind and sequence number
@@ -59,10 +50,15 @@ void Packet::printPacket()
 	cout<<"Kind :"<<this->kind<<endl;;                                      //Print the packet type
 	cout<<"Sequence number"<<this->sequence_number<<endl;                   //Print the sequence number
 }
-#if 0
+
+Packet::Packet(const Packet &pack){
+	this->kind = pack.kind;
+	//this->data = malloc(DATA_SIZE);
+	//memcpy(this->data, pack.data, DATA_SIZE);
+	this->sequence_number = pack.sequence_number; 
+	this->sizeOfData = pack.sizeOfData;
+}
 //Destructor for packet that deallocates memory allocated to data
 Packet::~Packet()
 {
-	free(this->data);                                                       //Free the memory allocated for data
 }
-#endif

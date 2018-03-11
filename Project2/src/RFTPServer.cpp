@@ -63,7 +63,7 @@ file transfer.
 @param vfilename is the file we transfer
 @param size_of_data is the size of data theat we transfer
 */
-bool RFTPServer::fileReq(void *vfilename, int size_of_data)
+bool RFTPServer::fileReq(uint8_t vfilename, int size_of_data)
 {
 	cout<<"In file req.\nSize of data is: "<<size_of_data;
 	if (!this->isConnected)
@@ -160,7 +160,8 @@ receivePacket() is used to receive packets like CONNECTION_REQUEST,
  FILE_REQUEST and call the appropriate functions to handle them
 */
 void RFTPServer::receivePacket(){
-	void *buf = malloc(PACKET_SIZE);  //To read a packet clientS socket.
+	
+	uint8_t buf[PACKET_SIZE];
 	int n; //Number of bytes read.
     while(1) {
 		if (n = recvfrom(sockR, buf, PACKET_SIZE,0,(struct sockaddr *)&clientS,&fromlen) < 0)
@@ -193,15 +194,16 @@ Type of packet sent here is mostly an acknowledgement packet
 @seq_no is the sequence number of the packet
 */
 void RFTPServer::send_packet(PacketKind pk, int seq_no) {
-	void *data = malloc(DATA_SIZE);
+	uint8_t data[DATA_SIZE];
+	uint8_t ptr[PACKET_SIZE];	
+
 	memset(data, 0, DATA_SIZE);
 	Packet packet = Packet(pk, seq_no, 0, data);
-	void *ptr = packet.serialize();
+	ptr = packet.serialize();
 	if(pk == CLOSE_CONNECTION)
 		sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 	sendto(this->sockR, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientS,fromlen);
-	delete(data);	
-	delete(ptr);	
+
 }
 
 /**
