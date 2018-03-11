@@ -11,7 +11,7 @@ class Packet {
 		uint8_t data[DATA_SIZE];                                             //Pointer to the data being transferred
 		
 	public:
-		uint8_t* serialize();                                      //Serializer
+		uint8_t* serialize(uint8_t* );                                      //Serializer
 		Packet(uint8_t *);                                         //Constructor which is the Deserializer
 		Packet(const Packet &obj);                                         //Constructor which is the Deserializer
 		Packet();                                         //Constructor which is the Deserializer

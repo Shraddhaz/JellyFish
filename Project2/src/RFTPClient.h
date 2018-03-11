@@ -36,5 +36,5 @@ class RFTPClient{
 		void receivePacket();                                               //Receive packet clientS serverS
 		bool requestFile(char *filename);                                   //Request file clientS Server
 		void send_packet(int sock, PacketKind pk, int seq_no);                        //Send packet
-		void send_packet(PacketKind pk, int seq_no, int size, void *data);  //Send packet with data
+		void send_packet(PacketKind pk, int seq_no, int size, uint8_t *data);  //Send packet with data
 };

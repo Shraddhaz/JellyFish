@@ -1,0 +1,79 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+Bind	RFTPServer.cpp	/^void RFTPServer :: Bind(){$/;"	f	class:RFTPServer
+CLOSE_CONNECTION	Constants.h	/^	CLOSE_CONNECTION,                               \/\/Close Connection$/;"	e	enum:__anon1
+CONNECTION_ACK	Constants.h	/^	CONNECTION_ACK,                                 \/\/Connection Acknowledgement$/;"	e	enum:__anon1
+CONNECTION_REQUEST	Constants.h	/^	CONNECTION_REQUEST,                             \/\/Connection Request$/;"	e	enum:__anon1
+Compare	RFTPClient.h	/^class Compare{$/;"	c
+DATA	Constants.h	/^	DATA,                                           \/\/Data only$/;"	e	enum:__anon1
+DATA_ACK	Constants.h	/^	DATA_ACK,                                       \/\/Data Acknowledgement$/;"	e	enum:__anon1
+DATA_LOC	Constants.h	26;"	d
+DATA_SIZE	Constants.h	6;"	d
+DATA_SIZE_LOC	Constants.h	25;"	d
+FILE_REQUEST	Constants.h	/^	FILE_REQUEST,                                   \/\/File Request$/;"	e	enum:__anon1
+FILE_REQUEST_ACK	Constants.h	/^	FILE_REQUEST_ACK,                               \/\/File Request Acknowledgement$/;"	e	enum:__anon1
+FILE_REQ_ERROR	Constants.h	/^	FILE_REQ_ERROR,                                 \/\/File Request Error$/;"	e	enum:__anon1
+ListenAccept	RFTPServer.cpp	/^void RFTPServer::ListenAccept(){$/;"	f	class:RFTPServer
+NONE	Constants.h	/^	NONE$/;"	e	enum:__anon1
+PACKET_SIZE	Constants.h	28;"	d
+PORT_NUMBER_ACK	Constants.h	5;"	d
+PORT_NUMBER_DATA	Constants.h	4;"	d
+Packet	Packet.cpp	/^Packet::Packet(PacketKind kind,int sequence_number , int sizeOfData, uint8_t *pdata){$/;"	f	class:Packet
+Packet	Packet.cpp	/^Packet::Packet(const Packet &pack){$/;"	f	class:Packet
+Packet	Packet.cpp	/^Packet::Packet(uint8_t * buffer){$/;"	f	class:Packet
+Packet	Packet.h	/^class Packet {$/;"	c
+PacketKind	Constants.h	/^} PacketKind;$/;"	t	typeref:enum:__anon1
+RFTPClient	RFTPClient.cpp	/^RFTPClient::RFTPClient()$/;"	f	class:RFTPClient
+RFTPClient	RFTPClient.h	/^class RFTPClient{$/;"	c
+RFTPServer	RFTPServer.cpp	/^RFTPServer::RFTPServer(){$/;"	f	class:RFTPServer
+RFTPServer	RFTPServer.h	/^class RFTPServer {$/;"	c
+SEQNO_LOC	Constants.h	24;"	d
+START_DATA_TRANSFER	Constants.h	/^	START_DATA_TRANSFER,                            \/\/Begin File Transfer$/;"	e	enum:__anon1
+ackQueue	RFTPClient.h	/^		std::queue<int> ackQueue;$/;"	m	class:RFTPClient
+clientR	RFTPServer.h	/^		struct sockaddr_in clientR;$/;"	m	class:RFTPServer	typeref:struct:RFTPServer::sockaddr_in
+clientS	RFTPServer.h	/^   		struct sockaddr_in clientS;                                                \/\/Client's socket struct$/;"	m	class:RFTPServer	typeref:struct:RFTPServer::sockaddr_in
+client_fs	Constants.h	30;"	d
+connectAndSend	RFTPClient.cpp	/^int RFTPClient::connectAndSend(char * hostname)$/;"	f	class:RFTPClient
+data	Packet.h	/^		uint8_t data[DATA_SIZE];                                             \/\/Pointer to the data being transferred$/;"	m	class:Packet
+fdRead	RFTPServer.h	/^		int fdRead;$/;"	m	class:RFTPServer
+fileQueue	RFTPClient.h	/^		std::priority_queue<Packet, std::vector<Packet>, Compare> fileQueue;$/;"	m	class:RFTPClient
+fileReq	RFTPServer.cpp	/^bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)$/;"	f	class:RFTPServer
+fromlen	RFTPServer.h	/^   		socklen_t fromlen;                                         \/\/Client length$/;"	m	class:RFTPServer
+hp	RFTPClient.h	/^   		struct hostent *hp;                                                \/\/Host net struct$/;"	m	class:RFTPClient	typeref:struct:RFTPClient::hostent
+isConnected	RFTPServer.h	/^		bool isConnected;                                                       \/\/Connection established or not$/;"	m	class:RFTPServer
+kind	Packet.h	/^		PacketKind kind;                                        \/\/Type of packet$/;"	m	class:Packet
+length	RFTPClient.h	/^		unsigned int length;                                               \/\/Unsigned int for length$/;"	m	class:RFTPClient
+length	RFTPServer.h	/^		int sockS, sockR, length, lengthAck;$/;"	m	class:RFTPServer
+lengthAck	RFTPServer.h	/^		int sockS, sockR, length, lengthAck;$/;"	m	class:RFTPServer
+main	Client.cpp	/^int main(int argc, char *argv[])$/;"	f
+main	Server.cpp	/^int main(int argc, char *argv[])$/;"	f
+operator ()	RFTPClient.h	/^	bool operator()(Packet p1, Packet p2) {return (p1.sequence_number < p2.sequence_number);};$/;"	f	class:Compare
+printPacket	Packet.cpp	/^void Packet::printPacket()$/;"	f	class:Packet
+read_timeout	RFTPServer.h	/^		struct timeval read_timeout;                                            \/\/Timeout for reading data$/;"	m	class:RFTPServer	typeref:struct:RFTPServer::timeval
+receivePacket	RFTPServer.cpp	/^void RFTPServer::receivePacket(){$/;"	f	class:RFTPServer
+receiver	RFTPServer.cpp	/^void* receiver(void* rcvargs) {$/;"	f
+requestFile	RFTPClient.cpp	/^bool RFTPClient::requestFile(char *filename)$/;"	f	class:RFTPClient
+reset_timeout	RFTPServer.h	/^		struct timeval reset_timeout;                                           \/\/Timeout after reset$/;"	m	class:RFTPServer	typeref:struct:RFTPServer::timeval
+send_packet	RFTPClient.cpp	/^void RFTPClient::send_packet(PacketKind pk, int seq_no, int size, void *data) {$/;"	f	class:RFTPClient
+send_packet	RFTPClient.cpp	/^void RFTPClient::send_packet(int socket, PacketKind pk, int seq_no) {$/;"	f	class:RFTPClient
+send_packet	RFTPServer.cpp	/^void RFTPServer::send_packet(PacketKind pk, int seq_no) {$/;"	f	class:RFTPServer
+send_packet	RFTPServer.cpp	/^void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, void *data) {$/;"	f	class:RFTPServer
+sender	RFTPServer.cpp	/^void* sender(void* sndargs) {$/;"	f
+sequence_number	Packet.h	/^		int sequence_number;                                    \/\/Sequence number of the packet$/;"	m	class:Packet
+serialize	Packet.cpp	/^uint8_t* Packet:: serialize(){$/;"	f	class:Packet
+serverR	RFTPClient.h	/^		struct sockaddr_in serverS, serverR;             \/\/Client and serverS struct$/;"	m	class:RFTPClient	typeref:struct:RFTPClient::
+serverR	RFTPServer.h	/^		struct sockaddr_in serverR;$/;"	m	class:RFTPServer	typeref:struct:RFTPServer::sockaddr_in
+serverS	RFTPClient.h	/^		struct sockaddr_in serverS, serverR;             \/\/Client and serverS struct$/;"	m	class:RFTPClient	typeref:struct:RFTPClient::sockaddr_in
+serverS	RFTPServer.h	/^   		struct sockaddr_in serverS;                                              \/\/Server's socket struct$/;"	m	class:RFTPServer	typeref:struct:RFTPServer::sockaddr_in
+server_fs	Constants.h	31;"	d
+sizeOfData	Packet.h	/^		int sizeOfData;                                         \/\/Size of Data being transferred$/;"	m	class:Packet
+sockR	RFTPClient.h	/^		int sockR, sockS;                                                \/\/Socket$/;"	m	class:RFTPClient
+sockR	RFTPServer.h	/^		int sockS, sockR, length, lengthAck;$/;"	m	class:RFTPServer
+sockS	RFTPClient.h	/^		int sockR, sockS;                                                \/\/Socket$/;"	m	class:RFTPClient
+sockS	RFTPServer.h	/^		int sockS, sockR, length, lengthAck;$/;"	m	class:RFTPServer
+~Packet	Packet.cpp	/^Packet::~Packet()$/;"	f	class:Packet
+~RFTPClient	RFTPClient.cpp	/^RFTPClient::~RFTPClient()$/;"	f	class:RFTPClient

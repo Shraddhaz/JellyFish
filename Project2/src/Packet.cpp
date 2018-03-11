@@ -10,13 +10,11 @@ using namespace std;
     for packet and copying from packet to buffer
     @return buffer used for file transfer
 */
-uint8_t* Packet:: serialize(){
-	uint8_t buffer[PACKET_SIZE];
+uint8_t* Packet:: serialize(uint8_t *buffer){
     memcpy(buffer, &(this->kind), sizeof(PacketKind));                     //Copying packet kind clientS packet to the buffer
     memcpy((buffer + SEQNO_LOC), &(this->sequence_number), sizeof(int));   //Copying sequence number clientS packet to buffer
     memcpy((buffer + DATA_SIZE_LOC), &(this->sizeOfData), sizeof(int));    //Copying size of data to send clientS packet to buffer
 	memcpy((buffer + DATA_LOC), this->data, DATA_SIZE);                    //Copying data clientS packet to buffer
-	return buffer;
 }
 
 /** Constructor for packet which is the deserializer that copies data

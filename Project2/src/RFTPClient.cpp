@@ -39,7 +39,7 @@ int RFTPClient::connectAndSend(char * hostname)
 
 	//Send request for connection
     send_packet(sockS, CONNECTION_REQUEST, 0);
-	void *received_packet = malloc(PACKET_SIZE);
+	uint8_t received_packet[PACKET_SIZE];
 	memset(received_packet, 0, PACKET_SIZE);
 	int n = recvfrom(sockS, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&serverS, &length);
 	Packet packet = Packet(received_packet);
@@ -49,7 +49,6 @@ int RFTPClient::connectAndSend(char * hostname)
 		return 0;
 	}
 	//Deleting the acknowledgement
-	delete(received_packet);
 	
 	if (n < 0)
 		return 0;
@@ -65,7 +64,7 @@ requesting for a file from the server
 bool RFTPClient::requestFile(char *filename)
 {
 	//Copying filename on the data field of packet.
-	void *vfilename = malloc(DATA_SIZE);
+	uint8_t vfilename[DATA_SIZE];
 	int len = strlen(filename)+1;
 	memset(vfilename, 0, DATA_SIZE);
 	memcpy(vfilename, filename, len);
@@ -77,12 +76,11 @@ bool RFTPClient::requestFile(char *filename)
 	strcat(abs_filename, "/");
 	strcat(abs_filename, filename);
 
-	void *received_packet;
+	uint8_t received_packet[PACKET_SIZE];
 	int x;
 	//Sending file request packet to serverS
 	send_packet(FILE_REQUEST, 2, len, vfilename);
 
-	received_packet = malloc(PACKET_SIZE);
     recvfrom(sockS, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&serverR, &length);
     Packet packet = Packet(received_packet);
 
@@ -132,9 +130,6 @@ bool RFTPClient::requestFile(char *filename)
 		cout<<((int)ackQueue.front())<<endl;
 		ackQueue.pop();
 	}
-	//Free memory
-	delete(received_packet);
-	delete(vfilename);
 	return return_val;
 }
 
@@ -145,13 +140,12 @@ Type of packet sent here is mostly an acknowledgement packet
 @seq_no is the sequence number of the packet
 */
 void RFTPClient::send_packet(int socket, PacketKind pk, int seq_no) {
-	void *data = malloc(DATA_SIZE);
+	uint8_t data[DATA_SIZE];
 	memset(data, 0, DATA_SIZE);
     Packet packet = Packet(pk, seq_no, 0, data);
-    void *ptr = packet.serialize();
+    uint8_t ptr[PACKET_SIZE];
+    packet.serialize(ptr);
     sendto(socket, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&serverR, length);
-	delete(data);
-    delete(ptr);
 }
 
 /**
@@ -161,9 +155,9 @@ Type of packet sent here is mostly a data packet
 @param seq_no is the sequence number of the packet
 @param data is the data being sent by the client
 */
-void RFTPClient::send_packet(PacketKind pk, int seq_no, int size, void *data) {
+void RFTPClient::send_packet(PacketKind pk, int seq_no, int size, uint8_t *data) {
     Packet packet = Packet(pk, seq_no, size, data);
-    void *ptr = packet.serialize();
+    uint8_t ptr[PACKET_SIZE];
+    packet.serialize(ptr);
     sendto(sockS, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&serverR,length);
-    delete(ptr);
 }

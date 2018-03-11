@@ -116,7 +116,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	}
 
 	//pthread_join(recvThread, NULL);
-	cout<<"Number of re-transmissions: "<i<(total_transmissions-(datasn-4))<<endl;
+	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
     send_packet(CLOSE_CONNECTION, 0);
 	return true;
@@ -130,7 +130,7 @@ void* receiver(void* rcvargs) {
 	int total_transmissions = 0;
 	uint8_t data;
 	while(1) {
-		uint8_t ptr;	
+		uint8_t ptr[PACKET_SIZE];
 		Packet *temp;
 		bool cond = true;
 		do {
@@ -144,7 +144,6 @@ void* receiver(void* rcvargs) {
 			temp = new Packet(ptr);
 			cond = temp->kind != DATA_ACK;
 			temp->printPacket();
-			delete(temp)		
 		} while(cond);
 		datasn++;
 	}
@@ -193,11 +192,11 @@ Type of packet sent here is mostly an acknowledgement packet
 */
 void RFTPServer::send_packet(PacketKind pk, int seq_no) {
 	uint8_t data[DATA_SIZE];
-	uint8_t ptr[PACKET_SIZE];	
+	uint8_t ptr[PACKET_SIZE];
 
 	memset(data, 0, DATA_SIZE);
 	Packet packet = Packet(pk, seq_no, 0, data);
-	ptr = packet.serialize();
+    packet.serialize(ptr);
 	if(pk == CLOSE_CONNECTION)
 		sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 	sendto(this->sockR, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientS,fromlen);
@@ -211,8 +210,9 @@ Type of packet sent here is mostly a data packet
 @param seq_no is the sequence number of the packet
 @param data is the data being sent by the server
 */
-void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, void *data) {
+void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, uint8_t* data) {
 	Packet packet = Packet(pk, seq_no, size, data);
-	uint8_t *ptr = packet.serialize();
+	uint8_t ptr[PACKET_SIZE];
+	packet.serialize(ptr);
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 }
