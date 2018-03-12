@@ -22,6 +22,7 @@ RFTPClient::~RFTPClient()
 	close(sockR);
 }
 
+
 /**
 connectAndSend() sends a connection request to the server and
 establishes a connection with the server
@@ -125,11 +126,20 @@ bool RFTPClient::requestFile(char *filename)
 		previousPacketNo = 	pack.sequence_number;
 	}
 		int a = ackQueue.size();
-	
+	    int b = fileQueue.size();
+
+	    cout<<"File queue:\n";
+		for (int i=0; i< b; i++){
+		cout<<((fileQueue.top()).sequence_number)<<endl;
+		fileQueue.pop();
+	}
+
+	    cout<<"ACK queue:\n";
 	for (int i=0; i< a; i++){
 		cout<<((int)ackQueue.front())<<endl;
 		ackQueue.pop();
 	}
+
 	return return_val;
 }
 
@@ -161,3 +171,5 @@ void RFTPClient::send_packet(PacketKind pk, int seq_no, int size, uint8_t *data)
     packet.serialize(ptr);
     sendto(sockS, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&serverR,length);
 }
+
+

@@ -118,7 +118,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	//pthread_join(recvThread, NULL);
 	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
-    send_packet(CLOSE_CONNECTION, 0);
+    send_packet(CLOSE_CONNECTION, datasn);
 	return true;
 }
 

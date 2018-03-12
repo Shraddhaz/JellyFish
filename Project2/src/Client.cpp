@@ -1,6 +1,5 @@
 //Client.cpp has the client implementation for the file request-transfer
 #include "RFTPClient.h"
-#include <iostream>
 using namespace std;
 
 /**
