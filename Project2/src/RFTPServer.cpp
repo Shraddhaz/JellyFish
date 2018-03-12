@@ -100,7 +100,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	
 	//Call 2 threads.	
 	pthread_t recvThread;
-//	pthread_create(&recvThread, NULL, receiver, this);
+	pthread_create(&recvThread, NULL, receiver, this);
 	int bytesRead = 0;
 	int datasn = 4;
 	
@@ -114,11 +114,12 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 		total_transmissions++;
 		datasn++;
 	}
+    send_packet(CLOSE_CONNECTION, datasn);
 
-	//pthread_join(recvThread, NULL);
+	pthread_join(recvThread, NULL);
 	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
-    send_packet(CLOSE_CONNECTION, datasn);
+
 	return true;
 }
 
@@ -129,7 +130,8 @@ void* receiver(void* rcvargs) {
 	//setsockopt(rtfpserver->sockR, SOL_SOCKET, SO_RCVTIMEO, &(rtfpserver->read_timeout), sizeof rtfpserver->read_timeout);
 	int total_transmissions = 0;
 	uint8_t data;
-	while(1) {
+
+    while(1) {
 		uint8_t ptr[PACKET_SIZE];
 		Packet *temp;
 		bool cond = true;
@@ -150,8 +152,6 @@ void* receiver(void* rcvargs) {
 
 }
 
-void* sender(void* sndargs) {
-}
 /**
 receivePacket() is used to receive packets like CONNECTION_REQUEST,
  FILE_REQUEST and call the appropriate functions to handle them

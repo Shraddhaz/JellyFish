@@ -6,6 +6,8 @@ RFTP Client constructor that creates a socket
 */
 RFTPClient::RFTPClient()
 {
+	this->size = PTHREAD_MUTEX_INITIALIZER;
+	this->is_empty = PTHREAD_COND_INITIALIZER;
 	serverS.sin_family = AF_INET;
 	serverR.sin_family = AF_INET;
 	sockR = socket(AF_INET, SOCK_DGRAM, 0);
@@ -100,15 +102,25 @@ bool RFTPClient::requestFile(char *filename)
 	bool flag = true;
 	int previousPacketNo = 3;
 	int fdWrite = open(abs_filename, O_CREAT | O_TRUNC| O_WRONLY, 0644);
+
+    pthread_t senderThread;
+    pthread_create(&senderThread, NULL, sender, (void*) this);
+
 	while (1) {
 		int n = recvfrom(sockR, received_packet,  PACKET_SIZE, 0, (struct sockaddr *)&serverS, &length);
 		if (n<= 0) {
 			return_val = false;
 			break;
 		}
+		
+		
 		Packet pack = Packet(received_packet);
+		pthread_mutex_lock(&(this->size));
+		ackQueue.push((pack.kind == CLOSE_CONNECTION ) ? -1 :pack.sequence_number);	
+		pthread_cond_signal(&(this->is_empty));
+		pthread_mutex_unlock(&(this->size));
+		
 		fileQueue.push(pack);
-		ackQueue.push(pack.sequence_number);
 		
 //		if(pack.sequence_number%1000 == 0) flag = !flag;
 		cout<<"Received packet number: "<<pack.sequence_number<<endl;
@@ -125,11 +137,14 @@ bool RFTPClient::requestFile(char *filename)
         //    send_packet(sockS, DATA_ACK, 0);
 		previousPacketNo = 	pack.sequence_number;
 	}
-		int a = ackQueue.size();
-	    int b = fileQueue.size();
+	
+	pthread_join(senderThread, NULL);
+	
+	int a = ackQueue.size();
+	int b = fileQueue.size();
 
-	    cout<<"File queue:\n";
-		for (int i=0; i< b; i++){
+	cout<<"File queue:\n";
+	for (int i=0; i< b; i++){
 		cout<<((fileQueue.top()).sequence_number)<<endl;
 		fileQueue.pop();
 	}
@@ -141,6 +156,21 @@ bool RFTPClient::requestFile(char *filename)
 	}
 
 	return return_val;
+}
+
+void* sender(void *obj) {
+    RFTPClient* client = (RFTPClient*) obj;
+    while(1) {
+        pthread_mutex_lock(&client->size);
+        if(client->fileQueue.empty()) 
+            pthread_cond_wait(&(client->is_empty),&(client->size));
+        int seq_no = client->ackQueue.front();
+
+        client->ackQueue.pop();
+        pthread_mutex_unlock(&client->size);
+        if(seq_no == -1) break;
+        client->send_packet(client->sockS, DATA_ACK, seq_no);
+    } 
 }
 
 /**
@@ -155,6 +185,7 @@ void RFTPClient::send_packet(int socket, PacketKind pk, int seq_no) {
     Packet packet = Packet(pk, seq_no, 0, data);
     uint8_t ptr[PACKET_SIZE];
     packet.serialize(ptr);
+    cout<<"Sending packet:\nKind: "<<pk<<endl<<"Seq No: "<<seq_no<<endl;
     sendto(socket, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&serverR, length);
 }
 

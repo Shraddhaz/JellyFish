@@ -22,9 +22,13 @@ class Compare {
     }
 };
 
+void* sender(void * args);
 
 class RFTPClient{
 	public:
+		pthread_t senderThread;
+		pthread_mutex_t size;
+		pthread_cond_t is_empty;
 		int sockR, sockS;                                                //Socket
 		unsigned int length;                                               //Unsigned int for length
 		struct sockaddr_in serverS, serverR;             //Client and serverS struct

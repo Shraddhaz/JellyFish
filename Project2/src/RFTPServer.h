@@ -18,8 +18,14 @@ receiving packets
 #include <fcntl.h>
 #include <queue>
 
+using namespace std;
+
 class RFTPServer {
-	public:
+    public:
+        pthread_mutex_t lock;
+		pthread_cond_t new_element_pushed;
+		priority_queue<int> fileQueue;
+
 		int sockS, sockR, length, lengthAck;
 		int fdRead;
    		socklen_t fromlen;                                         //Client length
