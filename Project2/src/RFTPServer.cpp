@@ -1,16 +1,14 @@
 #include "RFTPServer.h"
 using namespace std;
 
+pthread_mutex_t m_lock;
+pthread_cond_t isEmpty;
+pthread_cond_t isFull;
+
 /**
 RFTPServer constructor used to create a socket and initialize
  all the values used by the server
 */
-
-        pthread_mutex_t m_lock;
-		pthread_cond_t isEmpty;
-		pthread_cond_t isFull;
-
-
 RFTPServer::RFTPServer(){
 	sockS = socket(AF_INET, SOCK_DGRAM, 0);
    	sockR  = socket(AF_INET, SOCK_DGRAM, 0);
@@ -111,6 +109,11 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	return true;
 }
 
+/*
+*sender() is the function called by thread using pthread_create()
+Sender thread with this function SENDS DATA PACKET
+@args args is the pointer having all the arguments required for the sender function 
+**/
 void* sender(void* args) {
 	uint8_t data[DATA_SIZE];
 	RFTPServer* rftpserver = (RFTPServer*)args;
@@ -128,8 +131,8 @@ void* sender(void* args) {
 		packetWrap.pack = &packet;
 		packetWrap.s = RESEND;
 		packetWrap.timestamp = clock();	
+		
 		//Critical section begins
-
 		pthread_mutex_lock(&(m_lock));
 		
 		if (rftpserver->packetMap.size() >= rftpserver->winSize) {
@@ -138,11 +141,14 @@ void* sender(void* args) {
 		rftpserver->packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
 		pthread_mutex_unlock(&(m_lock));
 		//Critical section ends
+		
+		//Send packet
 		rftpserver->send_packet(packet);
 		total_transmissions++;
 
 		datasn++;
 	
+		//Critical section begins
 		pthread_mutex_lock(&(m_lock));
 		if (rftpserver->resend_queue.size() > 0 ) {
 			while(rftpserver->resend_queue.size() > 0) {
@@ -154,6 +160,7 @@ void* sender(void* args) {
 			}
 		}
 		pthread_mutex_unlock(&(m_lock));
+		//Critical section ends
 	}
 	//Sending Close Connection packet
 	uint8_t ptr[PACKET_SIZE];
@@ -170,12 +177,17 @@ void* sender(void* args) {
     	pthread_cond_wait(&(isEmpty), &(m_lock));
     rftpserver->packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
     pthread_mutex_unlock(&(m_lock));
+	//Critical section ends
 	
 	sendto(rftpserver->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&(rftpserver->clientR),rftpserver->fromlen);
 
 }
 
-//Receiving ack
+/*
+*receiver() is the function called by thread using pthread_create()
+Receiver thread with this function RECEIVES ACKNOWLEDGEMENT
+@args args is the pointer having all the arguments required for the receiver function 
+**/
 void* receiver(void* rcvargs) {
 	int bytesRead = 0;
 	int datasn = 4;
@@ -295,11 +307,20 @@ void RFTPServer::send_packet(Packet packet) {
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 }
 
+/* isExpired() is the function that checks whether the timestamp 
+* has expired or is old enough to consider it to be lost
+* @args start is the timestamp when the packet was first sent
+* @args stop is the timestamp of current time
+*/
 bool isExpired(int start, int stop) {
 	double dur = (stop - start)/double(CLOCKS_PER_SEC)*1000;
 	return (dur > TIMEOUT) ? true : false ;
 }
 
+/** timerThread is the thread function called using pthread_create()
+* responsible for handling retransmission of lost packets
+*@args args is the pointer having all the arguments required for the function
+*/
 void * timerThread (void * arg) {
 
 	RFTPServer * rftpserver = (RFTPServer *)arg;

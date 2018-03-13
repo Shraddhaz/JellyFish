@@ -103,6 +103,7 @@ bool RFTPClient::requestFile(char *filename)
 	int previousPacketNo = 3;
 	int fdWrite = open(abs_filename, O_CREAT | O_TRUNC| O_WRONLY, 0644);
 
+	//Creating and calling thread function - sender()
     pthread_t senderThread;
     pthread_create(&senderThread, NULL, sender, (void*) this);
 
@@ -113,14 +114,15 @@ bool RFTPClient::requestFile(char *filename)
 			break;
 		}
 		
-		
+		//Critical section begins
 		Packet pack = Packet(received_packet);
 		pthread_mutex_lock(&(this->size));
 		ackQueue.push((pack.kind == CLOSE_CONNECTION ) ? -1 :pack.sequence_number);	
 		//if(pack.sequence_number%5 == 0) flag = !flag;
 		pthread_cond_signal(&(this->is_empty));
 		pthread_mutex_unlock(&(this->size));
-		
+		//Critical section ends		
+
 		if (flag) fileQueue.push(pack);
 		if((previousPacketNo+1) == pack.sequence_number) {
 			while(!fileQueue.empty()) {
@@ -131,7 +133,7 @@ bool RFTPClient::requestFile(char *filename)
 			}
 		}
 	
-
+		//CLOSE CONNECTION will break loop
 		if(pack.kind == CLOSE_CONNECTION) {
 			return_val = true;
 			break;
@@ -145,11 +147,18 @@ bool RFTPClient::requestFile(char *filename)
 		previousPacketNo = 	pack.sequence_number;
 	}
 	
+	//Join thread
 	pthread_join(senderThread, NULL);
 
 	return return_val;
 }
-
+/*
+* sender() is the thread function called when the thread is created
+* using pthread_create() who is responsible for SENDING ACKNOWLEDGEMENT
+* to the server for the data packets received
+* @arg obj is the pointer having all the arguments required for 
+* sending packet
+*/
 void* sender(void *obj) {
     RFTPClient* client = (RFTPClient*) obj;
     while(1) {
