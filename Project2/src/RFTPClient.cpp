@@ -176,7 +176,7 @@ void* sender(void *obj) {
 /**
 send_packet() is used to send packet to the server without data.
 Type of packet sent here is mostly an acknowledgement packet
-@PacketKind is the type of packet being send
+@#includePacketKind is the type of packet being send
 @seq_no is the sequence number of the packet
 */
 void RFTPClient::send_packet(int socket, PacketKind pk, int seq_no) {

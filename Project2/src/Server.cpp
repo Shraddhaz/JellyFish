@@ -16,6 +16,7 @@ int main(int argc, char *argv[])
    }
 
    RFTPServer server;                   //Creating Server object
+	//PacketWrap Wrap;
    server.Bind();                       //Binding socket to the serverS struct(IP address and port number)
    server.receivePacket();              //Receive packet clientS Client
    return 0;                            //Return 0 if no error

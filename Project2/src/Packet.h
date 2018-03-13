@@ -1,6 +1,8 @@
 /** Packet.h has the declaration of the packet class and its methods
 */
 #include "Constants.h"
+//#include <chrono>
+using namespace std;
 
 //Creating Packet class
 class Packet {
@@ -19,3 +21,17 @@ class Packet {
 		~Packet();	                                            //Destructor for Packet class
 		void printPacket();                                     //Printing packet elements
 };
+
+/*
+typedef enum{
+    SEND,
+    RESEND
+} Status;
+
+template<typename T>
+typedef struct PacketWrap{
+    T pack;
+    Status s;
+    chrono::time_point<chrono::system_clock> time;
+} PWrap;
+*/

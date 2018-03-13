@@ -14,17 +14,45 @@ receiving packets
 #include <netdb.h>
 #include <stdio.h>
 #include "Packet.h"
+//#include "Packet.cpp"
 #include <iostream>
 #include <fcntl.h>
 #include <queue>
+#include <chrono>
+#include <unordered_map>
 
 using namespace std;
+/*
+typedef enum{
+	SEND,
+	RESEND
+} Status;
+
+typedef struct PacketWrap{
+	Packet pack;
+	Status s;
+	chrono::time_point<chrono::system_clock> time;
+} PWrap;
+*/
+typedef enum{
+    SEND,
+    RESEND
+} Status;
+
+typedef struct PacketWrap{
+    Packet *pack;
+    Status s;
+    chrono::time_point<chrono::system_clock> time;
+} PWrap;
+
+//PWrap packetWrap;
 
 class RFTPServer {
     public:
         pthread_mutex_t lock;
-		pthread_cond_t new_element_pushed;
-		priority_queue<int> fileQueue;
+		pthread_cond_t isEmpty;
+		pthread_cond_t isFull;
+		unordered_map<int, PWrap> packetMap;
 
 		int sockS, sockR, length, lengthAck;
 		int fdRead;
@@ -44,8 +72,7 @@ class RFTPServer {
 		void receivePacket();                                                   //Receive packet and deserialize it
 		bool fileReq(uint8_t *ptr, int size);                                     //Handle retransmission and timeout
 		void send_packet(PacketKind pk, int sn);                                //Send packet
-		void send_packet(PacketKind pk, int sn, int size, uint8_t *data);          //Send packet with data
+		void send_packet(Packet p);          //Send packet with data
 };
-
 
 void* receiver(void* rcvargs);

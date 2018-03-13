@@ -1,4 +1,3 @@
-
 #include "RFTPServer.h"
 using namespace std;
 
@@ -87,8 +86,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	
 	//Create a data packet
     send_packet(FILE_REQUEST_ACK, 3);
-	cout<<"File req ack sent\n";
-	
+	//cout<<"File request ack sent"<<endl;
 	uint8_t data[DATA_SIZE];
 	memset(data, 0, DATA_SIZE);
 
@@ -103,18 +101,47 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	pthread_create(&recvThread, NULL, receiver, this);
 	int bytesRead = 0;
 	int datasn = 4;
-	
+	PWrap packetWrap;	
 	int total_transmissions = 0;
 
 	while(1) {
 		memset(data, 0, DATA_SIZE);
 		if((bytesRead = read(this->fdRead, data, DATA_SIZE)) <= 0) break;
 		bool cond = true;
-		this->send_packet(DATA, datasn, bytesRead, data);
+		Packet packet = Packet(DATA, datasn, bytesRead, data);
+		packetWrap.pack = &packet;
+		packetWrap.s = RESEND;
+		packetWrap.time = chrono::system_clock::now();	
+		//Critical section begins
+		pthread_mutex_lock(&(this->lock));
+		if(packetMap.size() >= MAX_WINDOW_SIZE)
+			pthread_cond_wait(&(this->isFull), &(this->lock));
+		packetMap.insert({packetWrap.pack->sequence_number, packetWrap});	
+		//pthread_cond_signal(&(this->isEmpty));
+		pthread_mutex_unlock(&(this->lock));
+		this->send_packet(packet);
 		total_transmissions++;
 		datasn++;
 	}
-    send_packet(CLOSE_CONNECTION, datasn);
+	//Sending Close Connection packet
+	uint8_t ptr[PACKET_SIZE];
+	memset(data, 0, DATA_SIZE);
+    Packet packet = Packet(CLOSE_CONNECTION, datasn, 0, data);
+    packet.serialize(ptr);
+
+	packetWrap.pack = &packet;
+    packetWrap.s = RESEND;
+    packetWrap.time = chrono::system_clock::now();
+    //Critical section begins
+    pthread_mutex_lock(&(this->lock));
+    if(packetMap.size() >= MAX_WINDOW_SIZE)
+    	pthread_cond_wait(&(this->isFull), &(this->lock));
+    packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
+    //pthread_cond_signal(&(this->isEmpty));
+    pthread_mutex_unlock(&(this->lock));
+	
+	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
+    //send_packet(CLOSE_CONNECTION, datasn);
 
 	pthread_join(recvThread, NULL);
 	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
@@ -123,6 +150,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	return true;
 }
 
+//Receiving ack
 void* receiver(void* rcvargs) {
 	int bytesRead = 0;
 	int datasn = 4;
@@ -130,7 +158,7 @@ void* receiver(void* rcvargs) {
 	//setsockopt(rtfpserver->sockR, SOL_SOCKET, SO_RCVTIMEO, &(rtfpserver->read_timeout), sizeof rtfpserver->read_timeout);
 	int total_transmissions = 0;
 	uint8_t data;
-
+	
     while(1) {
 		uint8_t ptr[PACKET_SIZE];
 		Packet *temp;
@@ -138,12 +166,17 @@ void* receiver(void* rcvargs) {
 		do {
 			total_transmissions++;
 			memset(ptr, 0, PACKET_SIZE);
-	
+			
 			int n = recvfrom(rtfpserver->sockR, ptr,PACKET_SIZE,0,(struct sockaddr *)&(rtfpserver->clientS), &(rtfpserver->fromlen));
 			if (n < 0) continue;
 				cout<<"Error in received Packet.\n";
-
+			
 			temp = new Packet(ptr);
+			pthread_mutex_lock(&(rtfpserver->lock));
+            rtfpserver->packetMap.erase(temp->sequence_number);
+            pthread_cond_signal(&(rtfpserver->isFull));
+            pthread_mutex_unlock(&(rtfpserver->lock));
+
 			cond = temp->kind != DATA_ACK;
 			temp->printPacket();
 		} while(cond);
@@ -210,8 +243,8 @@ Type of packet sent here is mostly a data packet
 @param seq_no is the sequence number of the packet
 @param data is the data being sent by the server
 */
-void RFTPServer::send_packet(PacketKind pk, int seq_no, int size, uint8_t* data) {
-	Packet packet = Packet(pk, seq_no, size, data);
+void RFTPServer::send_packet(Packet packet) {
+	//Packet packet = Packet(pk, seq_no, size, data);
 	uint8_t ptr[PACKET_SIZE];
 	packet.serialize(ptr);
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
