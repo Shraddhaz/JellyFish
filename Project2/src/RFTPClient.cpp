@@ -162,9 +162,10 @@ void* sender(void *obj) {
     RFTPClient* client = (RFTPClient*) obj;
     while(1) {
         pthread_mutex_lock(&client->size);
-        if(client->fileQueue.empty()) 
+        if(client->ackQueue.empty()) 
             pthread_cond_wait(&(client->is_empty),&(client->size));
-        int seq_no = client->ackQueue.front();
+        
+		int seq_no = client->ackQueue.front();
 
         client->ackQueue.pop();
         pthread_mutex_unlock(&client->size);
