@@ -146,8 +146,6 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
     pthread_mutex_unlock(&(this->lock));
 	
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
-    //send_packet(CLOSE_CONNECTION, datasn);
-
 	pthread_join(recvThread, NULL);
 	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Sending close connection signal.\n";
@@ -185,23 +183,26 @@ void* receiver(void* rcvargs) {
 			pthread_mutex_lock(&(rtfpserver->lock));
             rtfpserver->packetMap.erase(temp->sequence_number);
             size = rtfpserver->packetMap.size();
+			cout<<"Size: "<<size<<endl;
 			if(size == 1){
-				auto it = rtfpserver->packetMap.begin();
-				if(it->second.pack->kind==CLOSE_CONNECTION)
+				iter = rtfpserver->packetMap.begin();
+				cout<<iter->second.pack->kind;
+				if(iter->second.pack->kind==CLOSE_CONNECTION)
 					isEnd = true;
 			}
 			pthread_cond_signal(&(rtfpserver->isEmpty));
             pthread_mutex_unlock(&(rtfpserver->lock));
 
-			if(isEnd)
-				break;
+			//if(isEnd)
+			//	break;
 
 			cond = temp->kind != DATA_ACK;
 			temp->printPacket();
 		} while(cond);
+		if(isEnd)
+			break;
 		datasn++;
 	}
-
 }
 
 /**
