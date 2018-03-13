@@ -117,12 +117,23 @@ bool RFTPClient::requestFile(char *filename)
 		Packet pack = Packet(received_packet);
 		pthread_mutex_lock(&(this->size));
 		ackQueue.push((pack.kind == CLOSE_CONNECTION ) ? -1 :pack.sequence_number);	
+		//if(pack.sequence_number%5 == 0) flag = !flag;
+		cout<<"Signalling thread from receiver.\n";
 		pthread_cond_signal(&(this->is_empty));
 		pthread_mutex_unlock(&(this->size));
+		cout<<"Unlonking mutex from receiver\n";
 		
-		fileQueue.push(pack);
-		
-		if(pack.sequence_number%5 == 0) flag = !flag;
+		if (flag) fileQueue.push(pack);
+		if((previousPacketNo+1) == pack.sequence_number) {
+			while(!fileQueue.empty()) {
+				if (fileQueue.top().sequence_number) {
+					write(fdWrite, fileQueue.top().data, pack.sizeOfData);
+					fileQueue.pop();
+				}
+			}
+		}
+	
+
 		//cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
 			return_val = true;
@@ -132,7 +143,6 @@ bool RFTPClient::requestFile(char *filename)
 			return_val = false; 
 			break;
 		}
-		if((previousPacketNo+1) == pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
 		if (flag)
             send_packet(sockS, DATA_ACK, pack.sequence_number);
 		previousPacketNo = 	pack.sequence_number;
@@ -161,7 +171,8 @@ bool RFTPClient::requestFile(char *filename)
 void* sender(void *obj) {
     RFTPClient* client = (RFTPClient*) obj;
     while(1) {
-        pthread_mutex_lock(&client->size);
+        
+		pthread_mutex_lock(&client->size);
         if(client->ackQueue.empty()) 
             pthread_cond_wait(&(client->is_empty),&(client->size));
         

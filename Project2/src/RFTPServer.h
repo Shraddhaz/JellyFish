@@ -26,7 +26,6 @@ using namespace std;
 bool isExpired(int, int);
 
 
-
 /*
 typedef enum{
 	SEND,
@@ -54,11 +53,11 @@ typedef struct PacketWrap{
 
 class RFTPServer {
     public:
-        pthread_mutex_t lock;
-		pthread_cond_t isEmpty;
-		pthread_cond_t isFull;
 		unordered_map<int, PWrap> packetMap;
 		queue<int> resend_queue;
+	pthread_t recvThread;
+	pthread_t sendThread;
+	pthread_t timeThread;
 
 		int sockS, sockR, length, lengthAck;
 		int fdRead;
@@ -82,4 +81,5 @@ class RFTPServer {
 };
 
 void* receiver(void* rcvargs);
+void* sender(void* rcvargs);
 void *timerThread(void*);

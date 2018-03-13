@@ -4,7 +4,7 @@
 #define PORT_NUMBER_DATA 2939	//Default port for sender
 #define PORT_NUMBER_ACK 1613	//Default port for receiver
 #define DATA_SIZE 1024      //Default size of data sent
-#define TIMEOUT 100
+#define TIMEOUT 10
 //Enum for various types of packets with PacketKind as its object
 typedef enum {
 	CONNECTION_REQUEST,                             //Connection Request
