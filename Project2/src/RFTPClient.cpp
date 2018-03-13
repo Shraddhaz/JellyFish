@@ -122,7 +122,7 @@ bool RFTPClient::requestFile(char *filename)
 		
 		fileQueue.push(pack);
 		
-//		if(pack.sequence_number%1000 == 0) flag = !flag;
+		if(pack.sequence_number%5 == 0) flag = !flag;
 		//cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
 			return_val = true;
@@ -133,8 +133,8 @@ bool RFTPClient::requestFile(char *filename)
 			break;
 		}
 		if((previousPacketNo+1) == pack.sequence_number) write(fdWrite, pack.data, pack.sizeOfData);
-		//if (flag)
-        //    send_packet(sockS, DATA_ACK, 0);
+		if (flag)
+            send_packet(sockS, DATA_ACK, pack.sequence_number);
 		previousPacketNo = 	pack.sequence_number;
 	}
 	

@@ -155,7 +155,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 	pthread_join(recvThread, NULL);
-	//cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
+	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
 	cout<<"Closing connection\n";
 
 	return true;
@@ -187,6 +187,8 @@ void* receiver(void* rcvargs) {
 				cout<<"Error in received Packet.\n";
 			}
 			temp = new Packet(ptr);
+			//cout<<"Received:\n";
+			//temp->printPacket();
 			pthread_mutex_lock(&(rtfpserver->lock));
             rtfpserver->packetMap.erase(temp->sequence_number);
             size = rtfpserver->packetMap.size();
@@ -296,6 +298,5 @@ void * timerThread (void * arg) {
 			}
 		}
 		pthread_mutex_unlock(&(rftpserver->lock));
-
 	} 
 }
