@@ -18,10 +18,15 @@ receiving packets
 #include <iostream>
 #include <fcntl.h>
 #include <queue>
-#include <chrono>
+#include <ctime>
 #include <unordered_map>
 
 using namespace std;
+
+bool isExpired(int, int);
+
+
+
 /*
 typedef enum{
 	SEND,
@@ -42,7 +47,7 @@ typedef enum{
 typedef struct PacketWrap{
     Packet *pack;
     Status s;
-    chrono::time_point<chrono::system_clock> time;
+    int timestamp;
 } PWrap;
 
 //PWrap packetWrap;
@@ -53,6 +58,7 @@ class RFTPServer {
 		pthread_cond_t isEmpty;
 		pthread_cond_t isFull;
 		unordered_map<int, PWrap> packetMap;
+		queue<int> resend_queue;
 
 		int sockS, sockR, length, lengthAck;
 		int fdRead;
@@ -76,3 +82,4 @@ class RFTPServer {
 };
 
 void* receiver(void* rcvargs);
+void *timerThread(void*);

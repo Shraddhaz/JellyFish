@@ -98,12 +98,14 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	
 	//Call 2 threads.	
 	pthread_t recvThread;
+	pthread_t timeThread;
 	pthread_create(&recvThread, NULL, receiver, this);
+	pthread_create(&timeThread, NULL, timerThread, this);
 	int bytesRead = 0;
 	int datasn = 4;
 	PWrap packetWrap;	
 	int total_transmissions = 0;
-
+	unordered_map<int, PWrap>::iterator term_iter;
 	while(1) {
 		memset(data, 0, DATA_SIZE);
 		if((bytesRead = read(this->fdRead, data, DATA_SIZE)) <= 0) 
@@ -112,7 +114,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 		Packet packet = Packet(DATA, datasn, bytesRead, data);
 		packetWrap.pack = &packet;
 		packetWrap.s = RESEND;
-		packetWrap.time = chrono::system_clock::now();	
+		packetWrap.timestamp = clock();	
 		//Critical section begins
 		pthread_mutex_lock(&(this->lock));
 		if(packetMap.size() >= MAX_WINDOW_SIZE)
@@ -123,7 +125,17 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 		this->send_packet(packet);
 		total_transmissions++;
 		datasn++;
-		
+	
+		pthread_mutex_lock(&(this->lock));
+		if (resend_queue.size() > 0 ) {
+			while(resend_queue.size() > 0) {
+				term_iter = this->packetMap.find(resend_queue.front());
+				Packet *p = term_iter->second.pack;
+				send_packet(*p);
+				resend_queue.pop();
+			}
+		}
+		pthread_mutex_unlock(&(this->lock));
 	}
 	//Sending Close Connection packet
 	uint8_t ptr[PACKET_SIZE];
@@ -132,7 +144,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
     packet.serialize(ptr);
 	packetWrap.pack = &packet;
     packetWrap.s = RESEND;
-    packetWrap.time = chrono::system_clock::now();
+    packetWrap.timestamp = clock();
     
 	//Critical section begins
 	pthread_mutex_lock(&(this->lock));
@@ -262,4 +274,28 @@ void RFTPServer::send_packet(Packet packet) {
 	uint8_t ptr[PACKET_SIZE];
 	packet.serialize(ptr);
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
+}
+
+bool isExpired(int start, int stop) {
+	double dur = (stop - start)/double(CLOCKS_PER_SEC)*1000;
+	return (dur > TIMEOUT) ? true : false ;
+}
+
+void * timerThread (void * arg) {
+	RFTPServer * rftpserver = (RFTPServer *)arg;
+	int terminate = 0;
+	while(1) {
+		usleep(100000);
+		int curr_time = clock();
+		pthread_mutex_lock(&(rftpserver->lock));
+		unordered_map<int, PWrap>::iterator it = rftpserver->packetMap.begin();
+		while (it != rftpserver->packetMap.end()) {
+			if (isExpired(it->second.timestamp , curr_time)) {
+				rftpserver->resend_queue.push(it->second.pack->sequence_number);
+				it->second.s = SEND;
+			}
+		}
+		pthread_mutex_unlock(&(rftpserver->lock));
+
+	} 
 }
