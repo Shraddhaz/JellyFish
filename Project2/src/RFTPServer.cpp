@@ -168,10 +168,12 @@ void* receiver(void* rcvargs) {
 			memset(ptr, 0, PACKET_SIZE);
 			
 			int n = recvfrom(rtfpserver->sockR, ptr,PACKET_SIZE,0,(struct sockaddr *)&(rtfpserver->clientS), &(rtfpserver->fromlen));
-			if (n < 0) continue;
+			if (n < 0){
+				continue;
 				cout<<"Error in received Packet.\n";
-			
+			}
 			temp = new Packet(ptr);
+			cout<<"Received sequence no:"<<temp->sequence_number<<endl;
 			pthread_mutex_lock(&(rtfpserver->lock));
             rtfpserver->packetMap.erase(temp->sequence_number);
             pthread_cond_signal(&(rtfpserver->isFull));
