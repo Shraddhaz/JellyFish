@@ -29,5 +29,4 @@ typedef enum {
 
 #define client_fs "ClientFileSystem"                //Alias for ClientFileSystem
 #define server_fs "ServerFileSystem"                //Alias for ServerFileSystem
-
-#define MAX_WINDOW_SIZE 10
+#define MAX_WINDOW_SIZE 25

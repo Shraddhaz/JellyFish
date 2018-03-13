@@ -58,7 +58,8 @@ class RFTPServer {
 	pthread_t recvThread;
 	pthread_t sendThread;
 	pthread_t timeThread;
-
+		
+		int winSize = 1;
 		int sockS, sockR, length, lengthAck;
 		int fdRead;
    		socklen_t fromlen;                                         //Client length

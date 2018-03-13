@@ -138,7 +138,7 @@ void* sender(void* args) {
 		pthread_mutex_lock(&(m_lock));
 		cout<<"Lock acquired: sender.\n";
 		
-		if (rftpserver->packetMap.size() >= MAX_WINDOW_SIZE) {
+		if (rftpserver->packetMap.size() >= rftpserver->winSize) {
 			cout<<"Releasing lovk thru wait: sender.\n";
 			cout<<pthread_cond_wait(&(isEmpty), &(m_lock))<<endl;
 			cout<<"Released lock thru wait: sender.\n";
@@ -178,7 +178,7 @@ void* sender(void* args) {
     
 	//Critical section begins
 	pthread_mutex_lock(&(m_lock));
-    if(rftpserver->packetMap.size() >= MAX_WINDOW_SIZE)
+    if(rftpserver->packetMap.size() >= rftpserver->winSize)
     	pthread_cond_wait(&(isEmpty), &(m_lock));
     rftpserver->packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
     pthread_mutex_unlock(&(m_lock));
@@ -219,6 +219,9 @@ void* receiver(void* rcvargs) {
 			pthread_mutex_lock(&(m_lock));
 		cout<<"Lock acquired: receiver.\n";
             rtfpserver->packetMap.erase(temp->sequence_number);
+			if(rtfpserver->winSize < MAX_WINDOW_SIZE){
+				rtfpserver->winSize += 1;
+			}
             size = rtfpserver->packetMap.size();
 			if(size == 1){
 				iter = rtfpserver->packetMap.begin();
@@ -328,6 +331,7 @@ void * timerThread (void * arg) {
 			if (isExpired(it->second.timestamp , curr_time)) {
 				rftpserver->resend_queue.push(it->second.pack->sequence_number);
 				it->second.s = SEND;
+				(rftpserver->winSize) = (rftpserver->winSize)/2;
 			}
 		}
 		pthread_mutex_unlock(&(m_lock));
