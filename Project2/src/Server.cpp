@@ -19,6 +19,7 @@ int main(int argc, char *argv[])
 	//PacketWrap Wrap;
    server.Bind();                       //Binding socket to the serverS struct(IP address and port number)
    server.receivePacket();              //Receive packet clientS Client
-   return 0;                            //Return 0 if no error
+   cout<<"File transfer completed."<<endl;
+	return 0;                            //Return 0 if no error
  }
 

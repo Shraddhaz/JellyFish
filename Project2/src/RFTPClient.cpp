@@ -123,7 +123,7 @@ bool RFTPClient::requestFile(char *filename)
 		fileQueue.push(pack);
 		
 //		if(pack.sequence_number%1000 == 0) flag = !flag;
-		cout<<"Received packet number: "<<pack.sequence_number<<endl;
+		//cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
 			return_val = true;
 			break;
@@ -139,13 +139,13 @@ bool RFTPClient::requestFile(char *filename)
 	}
 	
 	pthread_join(senderThread, NULL);
-	
+/*	
 	int a = ackQueue.size();
 	int b = fileQueue.size();
 
 	cout<<"File queue:\n";
 	for (int i=0; i< b; i++){
-		cout<<((fileQueue.top()).sequence_number)<<endl;
+		//cout<<((fileQueue.top()).sequence_number)<<endl;
 		fileQueue.pop();
 	}
 
@@ -154,7 +154,7 @@ bool RFTPClient::requestFile(char *filename)
 		cout<<((int)ackQueue.front())<<endl;
 		ackQueue.pop();
 	}
-
+*/
 	return return_val;
 }
 
@@ -186,7 +186,7 @@ void RFTPClient::send_packet(int socket, PacketKind pk, int seq_no) {
     Packet packet = Packet(pk, seq_no, 0, data);
     uint8_t ptr[PACKET_SIZE];
     packet.serialize(ptr);
-    cout<<"Sending packet:\nKind: "<<pk<<endl<<"Seq No: "<<seq_no<<endl;
+    //cout<<"Sending packet:\nKind: "<<pk<<endl<<"Seq No: "<<seq_no<<endl;
     sendto(socket, ptr, PACKET_SIZE, 0,(const struct sockaddr *)&serverR, length);
 }
 

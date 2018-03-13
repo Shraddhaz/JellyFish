@@ -64,7 +64,7 @@ file transfer.
 */
 bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 {
-	cout<<"In file req.\nSize of data is: "<<size_of_data;
+	//cout<<"In file req.\nSize of data is: "<<size_of_data;
 	if (!this->isConnected)
 		return false;
 	
@@ -82,7 +82,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	}	
 
 	this->fdRead = open(absfilename, 'r');
-	cout<<"fdRead is: "<<this->fdRead<<endl;
+	//cout<<"fdRead is: "<<this->fdRead<<endl;
 	
 	//Create a data packet
     send_packet(FILE_REQUEST_ACK, 3);
@@ -118,9 +118,8 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 		if(packetMap.size() >= MAX_WINDOW_SIZE)
 			pthread_cond_wait(&(this->isEmpty), &(this->lock));
 		packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
-		cout<<"Inserting"<<packetWrap.pack->sequence_number<<endl;	
-		//pthread_cond_signal(&(this->isEmpty));
 		pthread_mutex_unlock(&(this->lock));
+		//Critical section ends
 		this->send_packet(packet);
 		total_transmissions++;
 		datasn++;
@@ -131,24 +130,21 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	memset(data, 0, DATA_SIZE);
     Packet packet = Packet(CLOSE_CONNECTION, datasn, 0, data);
     packet.serialize(ptr);
-	//cout<<"Done sending all data packets. Sending Close connection now";
 	packetWrap.pack = &packet;
     packetWrap.s = RESEND;
     packetWrap.time = chrono::system_clock::now();
-    //Critical section begins
-
+    
+	//Critical section begins
 	pthread_mutex_lock(&(this->lock));
     if(packetMap.size() >= MAX_WINDOW_SIZE)
     	pthread_cond_wait(&(this->isEmpty), &(this->lock));
     packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
-    cout<<"Inserting close connection: "<<packetWrap.pack->sequence_number<<endl;
-    //pthread_cond_signal(&(this->isEmpty));
     pthread_mutex_unlock(&(this->lock));
 	
 	sendto(this->sockS, ptr, PACKET_SIZE,0,(struct sockaddr *)&clientR,fromlen);
 	pthread_join(recvThread, NULL);
-	cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
-	cout<<"Sending close connection signal.\n";
+	//cout<<"Number of re-transmissions: "<<(total_transmissions-(datasn-4))<<endl;
+	cout<<"Closing connection\n";
 
 	return true;
 }
@@ -179,25 +175,18 @@ void* receiver(void* rcvargs) {
 				cout<<"Error in received Packet.\n";
 			}
 			temp = new Packet(ptr);
-			cout<<"Received sequence no:"<<temp->sequence_number<<endl;
 			pthread_mutex_lock(&(rtfpserver->lock));
             rtfpserver->packetMap.erase(temp->sequence_number);
             size = rtfpserver->packetMap.size();
-			cout<<"Size: "<<size<<endl;
 			if(size == 1){
 				iter = rtfpserver->packetMap.begin();
-				cout<<iter->second.pack->kind;
 				if(iter->second.pack->kind==CLOSE_CONNECTION)
 					isEnd = true;
 			}
 			pthread_cond_signal(&(rtfpserver->isEmpty));
             pthread_mutex_unlock(&(rtfpserver->lock));
-
-			//if(isEnd)
-			//	break;
-
 			cond = temp->kind != DATA_ACK;
-			temp->printPacket();
+			//temp->printPacket();
 		} while(cond);
 		if(isEnd)
 			break;
@@ -216,11 +205,11 @@ void RFTPServer::receivePacket(){
     while(1) {
 		bool isComplete = false;
 		if (n = recvfrom(sockR, buf, PACKET_SIZE,0,(struct sockaddr *)&clientS,&fromlen) < 0)
-		cout<<"Nothing read clientS socket"<<endl;
+		cout<<"Nothing read in receive_from socket."<<endl;
         else
         {
          	Packet packet = Packet(buf);
-			packet.printPacket();
+			//packet.printPacket();
 			switch(packet.kind){
 			case CONNECTION_REQUEST:
 				ListenAccept();

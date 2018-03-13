@@ -34,10 +34,11 @@ int main(int argc, char *argv[])
 
 	//Checking if file transfer is successful
 	if (b)
-		cout<<"File transfer complete.\n";
+		cout<<"File transfer complete.\nAll packets received\n";
 	else
 		cout<<"Error transferring the file.\n"
 				"Check filename entered and/or check you connectivity.\n";
-
+	cout<<"File create!"<<endl;
+	cout<<"Check in ClientFileSystem folder"<<endl;
 	return 0;
 }
