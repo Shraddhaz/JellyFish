@@ -82,18 +82,14 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 	strcpy(absfilename, server_fs);
 	strcat(absfilename, "/");
 	strcat(absfilename, filename);
-	cout<<absfilename<<endl;
+	//cout<<absfilename<<endl;
 
 	if( access(absfilename, F_OK ) == -1 ) {
 		return false;
 	}	
 
 	this->fdRead = open(absfilename, 'r');
-	//cout<<"fdRead is: "<<this->fdRead<<endl;
-	
-	//Create a data packet
     send_packet(FILE_REQUEST_ACK, 3);
-	//cout<<"File request ack sent"<<endl;
 	uint8_t data[DATA_SIZE];
 	memset(data, 0, DATA_SIZE);
 
@@ -134,27 +130,20 @@ void* sender(void* args) {
 		packetWrap.timestamp = clock();	
 		//Critical section begins
 
-		cout<<"Acquiring lock from senderi.\n";
 		pthread_mutex_lock(&(m_lock));
-		cout<<"Lock acquired: sender.\n";
 		
 		if (rftpserver->packetMap.size() >= rftpserver->winSize) {
-			cout<<"Releasing lovk thru wait: sender.\n";
-			cout<<pthread_cond_wait(&(isEmpty), &(m_lock))<<endl;
-			cout<<"Released lock thru wait: sender.\n";
+			pthread_cond_wait(&(isEmpty), &(m_lock));
 		}
 		rftpserver->packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
 		pthread_mutex_unlock(&(m_lock));
-			cout<<"Released lock: sender.\n";
 		//Critical section ends
 		rftpserver->send_packet(packet);
 		total_transmissions++;
 
 		datasn++;
 	
-		cout<<"Acquiring lock from sender2.\n";
 		pthread_mutex_lock(&(m_lock));
-		cout<<"Lock acquired: sender2.\n";
 		if (rftpserver->resend_queue.size() > 0 ) {
 			while(rftpserver->resend_queue.size() > 0) {
 				term_iter = rftpserver->packetMap.find(rftpserver->resend_queue.front());
@@ -165,7 +154,6 @@ void* sender(void* args) {
 			}
 		}
 		pthread_mutex_unlock(&(m_lock));
-		cout<<"Lock unlocked: sender2.\n";
 	}
 	//Sending Close Connection packet
 	uint8_t ptr[PACKET_SIZE];
@@ -215,9 +203,7 @@ void* receiver(void* rcvargs) {
 			temp = new Packet(ptr);
 			//cout<<"Received:\n";
 			//temp->printPacket();
-		cout<<"Acquiring lock from receiver.\n";
 			pthread_mutex_lock(&(m_lock));
-		cout<<"Lock acquired: receiver.\n";
             rtfpserver->packetMap.erase(temp->sequence_number);
 			if(rtfpserver->winSize < MAX_WINDOW_SIZE){
 				rtfpserver->winSize += 1;
@@ -311,7 +297,6 @@ void RFTPServer::send_packet(Packet packet) {
 
 bool isExpired(int start, int stop) {
 	double dur = (stop - start)/double(CLOCKS_PER_SEC)*1000;
-	cout<<"*** In isExpired. dur: "<<dur<<endl;
 	return (dur > TIMEOUT) ? true : false ;
 }
 
@@ -323,9 +308,7 @@ void * timerThread (void * arg) {
 		usleep(50000000);
 	cout<<"**********Timer Invoked***********\n";
 		int curr_time = clock();
-		cout<<"** Waiting to acquire a lock\n";
 		pthread_mutex_lock(&(m_lock));
-		cout<<"** Lock acquired\n";
 		unordered_map<int, PWrap>::iterator it = rftpserver->packetMap.begin();
 		while (it != rftpserver->packetMap.end()) {
 			if (isExpired(it->second.timestamp , curr_time)) {

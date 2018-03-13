@@ -118,10 +118,8 @@ bool RFTPClient::requestFile(char *filename)
 		pthread_mutex_lock(&(this->size));
 		ackQueue.push((pack.kind == CLOSE_CONNECTION ) ? -1 :pack.sequence_number);	
 		//if(pack.sequence_number%5 == 0) flag = !flag;
-		cout<<"Signalling thread from receiver.\n";
 		pthread_cond_signal(&(this->is_empty));
 		pthread_mutex_unlock(&(this->size));
-		cout<<"Unlonking mutex from receiver\n";
 		
 		if (flag) fileQueue.push(pack);
 		if((previousPacketNo+1) == pack.sequence_number) {
@@ -134,7 +132,6 @@ bool RFTPClient::requestFile(char *filename)
 		}
 	
 
-		//cout<<"Received packet number: "<<pack.sequence_number<<endl;
 		if(pack.kind == CLOSE_CONNECTION) {
 			return_val = true;
 			break;
@@ -149,22 +146,7 @@ bool RFTPClient::requestFile(char *filename)
 	}
 	
 	pthread_join(senderThread, NULL);
-/*	
-	int a = ackQueue.size();
-	int b = fileQueue.size();
 
-	cout<<"File queue:\n";
-	for (int i=0; i< b; i++){
-		//cout<<((fileQueue.top()).sequence_number)<<endl;
-		fileQueue.pop();
-	}
-
-	    cout<<"ACK queue:\n";
-	for (int i=0; i< a; i++){
-		cout<<((int)ackQueue.front())<<endl;
-		ackQueue.pop();
-	}
-*/
 	return return_val;
 }
 
