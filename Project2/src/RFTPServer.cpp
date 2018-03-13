@@ -115,8 +115,9 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
 		//Critical section begins
 		pthread_mutex_lock(&(this->lock));
 		if(packetMap.size() >= MAX_WINDOW_SIZE)
-			pthread_cond_wait(&(this->isFull), &(this->lock));
-		packetMap.insert({packetWrap.pack->sequence_number, packetWrap});	
+			pthread_cond_wait(&(this->isEmpty), &(this->lock));
+		packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
+		cout<<"Inserting"<<packetWrap.pack->sequence_number<<endl;	
 		//pthread_cond_signal(&(this->isEmpty));
 		pthread_mutex_unlock(&(this->lock));
 		this->send_packet(packet);
@@ -136,6 +137,7 @@ bool RFTPServer::fileReq(uint8_t *vfilename, int size_of_data)
     pthread_mutex_lock(&(this->lock));
     if(packetMap.size() >= MAX_WINDOW_SIZE)
     	pthread_cond_wait(&(this->isFull), &(this->lock));
+	cout<<"Inserting in queue:"<<packetWrap.pack->sequence_number<<endl;
     packetMap.insert({packetWrap.pack->sequence_number, packetWrap});
     //pthread_cond_signal(&(this->isEmpty));
     pthread_mutex_unlock(&(this->lock));
@@ -175,8 +177,12 @@ void* receiver(void* rcvargs) {
 			temp = new Packet(ptr);
 			cout<<"Received sequence no:"<<temp->sequence_number<<endl;
 			pthread_mutex_lock(&(rtfpserver->lock));
+			//if(rtfpserver->packetMap.size()==0)
+			//	pthread_cond_wait(&(rtfpserver->isEmpty));
             rtfpserver->packetMap.erase(temp->sequence_number);
-            pthread_cond_signal(&(rtfpserver->isFull));
+            cout<<"Size:"<<rtfpserver->packetMap.size()<<endl;
+			//if(rtfpserver->packetMap.size() < MAX_WINDOW_SIZE)
+				pthread_cond_signal(&(rtfpserver->isEmpty));
             pthread_mutex_unlock(&(rtfpserver->lock));
 
 			cond = temp->kind != DATA_ACK;
